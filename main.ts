@@ -7,10 +7,10 @@ const ctx = canvas.getContext("2d") as CanvasRenderingContext2D
 const arr = new Float32Array(100*100)
 
 //microscopic variables used here for dircetional distribution of velocity
-const height = 100;
-const width = 100;  // i dont know the scale of these particles probability so this is an example value 
+const HEIGHT  = 100;
+const WIDTH = 100;  // i dont know the scale of these particles probability so this is an example value 
 
-const size = height * width;
+const size = HEIGHT  * WIDTH;
 
 const n0  = new Float32Array(size).fill(0); // Naught
 const nN  = new Float32Array(size).fill(0); // North
@@ -31,3 +31,6 @@ const ux     = new Float32Array(size).fill(0); // Cell x-velocity
 const uy     = new Float32Array(size).fill(0); // Cell y-velocity
 const speed2 = new Float32Array(size).fill(0); // Cell squared velocity
 
+function twoDto1D(i:number,j: number) {
+    return WIDTH * j + i ; // We can Adjust for 0-based indexing
+}
