@@ -3,39 +3,39 @@ const canvas = document.getElementById("projectCanvas");
 canvas.width = window.innerWidth * devicePixelRatio;
 canvas.height = window.innerHeight * devicePixelRatio;
 const ctx = canvas.getContext("2d");
-const WIDTH = 256;
-const HEIGHT = 64;
-const array1 = new Float32Array(WIDTH * HEIGHT).fill(0);
-// const n0 =new Float32Array(WIDTH*HEIGHT)
+const WIDTH = 512;
+const HEIGHT = 32;
+const array1 = new Float64Array(WIDTH * HEIGHT).fill(0);
+// const n0 =new Float64Array(WIDTH*HEIGHT)
 const viscosity = 0.02;
-const omega = 1. / (3 * viscosity + 0.5);
+const omega = 1 / (3 * viscosity + 0.5);
 const u0 = 0.1;
-const four9ths = 4. / 9.; // # a constant
-const one9th = 1. / 9.; //# a constant
-const one36th = 1. / 36.; // # a constant
+const four9ths = 4 / 9; // # a constant
+const one9th = 1 / 9; //# a constant
+const one36th = 1 / 36; // # a constant
 // Directions
-const n0 = new Float32Array(WIDTH * HEIGHT).fill(0);
-const nN = new Float32Array(WIDTH * HEIGHT).fill(0);
-const nS = new Float32Array(WIDTH * HEIGHT).fill(0);
-const nE = new Float32Array(WIDTH * HEIGHT).fill(0);
-const nW = new Float32Array(WIDTH * HEIGHT).fill(0);
-const nNE = new Float32Array(WIDTH * HEIGHT).fill(0);
-const nNW = new Float32Array(WIDTH * HEIGHT).fill(0);
-const nSE = new Float32Array(WIDTH * HEIGHT).fill(0);
-const nSW = new Float32Array(WIDTH * HEIGHT).fill(0);
+const n0 = new Float64Array(WIDTH * HEIGHT).fill(0);
+const nN = new Float64Array(WIDTH * HEIGHT).fill(0);
+const nS = new Float64Array(WIDTH * HEIGHT).fill(0);
+const nE = new Float64Array(WIDTH * HEIGHT).fill(0);
+const nW = new Float64Array(WIDTH * HEIGHT).fill(0);
+const nNE = new Float64Array(WIDTH * HEIGHT).fill(0);
+const nNW = new Float64Array(WIDTH * HEIGHT).fill(0);
+const nSE = new Float64Array(WIDTH * HEIGHT).fill(0);
+const nSW = new Float64Array(WIDTH * HEIGHT).fill(0);
 // Barriers
-const bar = new Float32Array(WIDTH * HEIGHT).fill(0);
+const bar = new Float64Array(WIDTH * HEIGHT).fill(0);
 // Macro
-const rho = new Float32Array(WIDTH * HEIGHT).fill(0);
-const ux = new Float32Array(WIDTH * HEIGHT).fill(0);
-const uy = new Float32Array(WIDTH * HEIGHT).fill(0);
-const speed2 = new Float32Array(WIDTH * HEIGHT).fill(0);
+const rho = new Float64Array(WIDTH * HEIGHT).fill(0);
+const ux = new Float64Array(WIDTH * HEIGHT).fill(0);
+const uy = new Float64Array(WIDTH * HEIGHT).fill(0);
+const speed2 = new Float64Array(WIDTH * HEIGHT).fill(0);
 // function Flatten2D(x:number,y:number){
 //     let n = (y*WIDTH)+x;
 //     console.log(n);
 // }
 const Flatten2D = (x, y) => {
-    return (y * WIDTH) + x;
+    return y * WIDTH + x;
 };
 // function Expand1D(m:number){
 //     let y = (m/WIDTH);
@@ -43,7 +43,7 @@ const Flatten2D = (x, y) => {
 //     console.log(Math.floor(y), x);
 // }
 const Expand2D = (k) => {
-    return [(k % WIDTH), Math.floor(k / WIDTH)];
+    return [k % WIDTH, Math.floor(k / WIDTH)];
 };
 const Stream = () => {
     for (let x = 0; x < WIDTH - 1; x++) {
@@ -57,13 +57,16 @@ const Stream = () => {
             // # Movement south (Southwest corner)
             nS[(HEIGHT - y - 1) * WIDTH + x] = nS[(HEIGHT - y - 1 - 1) * WIDTH + x];
             // # Movement southwest (Southwest corner)
-            nSW[(HEIGHT - y - 1) * WIDTH + x] = nSW[(HEIGHT - y - 1 - 1) * WIDTH + x + 1];
+            nSW[(HEIGHT - y - 1) * WIDTH + x] =
+                nSW[(HEIGHT - y - 1 - 1) * WIDTH + x + 1];
             // # Movement east (Northeast corner)
             nE[y * WIDTH + (WIDTH - x - 1)] = nE[y * WIDTH + (WIDTH - (x + 1) - 1)];
             // # Movement northeast (Northeast corner)
-            nNE[y * WIDTH + (WIDTH - x - 1)] = nNE[y * WIDTH + WIDTH + (WIDTH - (x + 1) - 1)];
+            nNE[y * WIDTH + (WIDTH - x - 1)] =
+                nNE[y * WIDTH + WIDTH + (WIDTH - (x + 1) - 1)];
             // # Movement southeast (Southeast corner)
-            nSE[(HEIGHT - y - 1) * WIDTH + (WIDTH - x - 1)] = nSE[(HEIGHT - y - 1 - 1) * WIDTH + (WIDTH - (x + 1) - 1)];
+            nSE[(HEIGHT - y - 1) * WIDTH + (WIDTH - x - 1)] =
+                nSE[(HEIGHT - y - 1 - 1) * WIDTH + (WIDTH - (x + 1) - 1)];
         }
         x += 1;
         for (let y = 1; y < HEIGHT - 1; y++) {
@@ -104,18 +107,31 @@ const Bounce = () => {
 const Collide = () => {
     for (let x = 1; x < WIDTH - 1; x++) {
         for (let y = 1; y < HEIGHT - 1; y++) {
-            const i = (y * WIDTH) + x;
+            const i = y * WIDTH + x;
             // # Skip over cells containing barriers
             if (bar[i]) {
                 continue;
             }
             else {
                 // # Compute the macroscopic density
-                rho[i] = n0[i] + nN[i] + nE[i] + nS[i] + nW[i] + nNE[i] + nSE[i] + nSW[i] + nNW[i];
+                rho[i] =
+                    n0[i] +
+                        nN[i] +
+                        nE[i] +
+                        nS[i] +
+                        nW[i] +
+                        nNE[i] +
+                        nSE[i] +
+                        nSW[i] +
+                        nNW[i];
                 // # Compute the macroscopic velocities
                 if (rho[i] > 0) {
-                    ux[i] = (nE[i] + nNE[i] + nSE[i] - nW[i] - nNW[i] - nSW[i]) * (1 - (rho[i] - 1) + ((rho[i] - 1) ** 2.));
-                    uy[i] = (nN[i] + nNE[i] + nNW[i] - nS[i] - nSE[i] - nSW[i]) * (1 - (rho[i] - 1) + ((rho[i] - 1) ** 2.));
+                    ux[i] =
+                        (nE[i] + nNE[i] + nSE[i] - nW[i] - nNW[i] - nSW[i]) *
+                            (1 - (rho[i] - 1) + (rho[i] - 1) ** 2);
+                    uy[i] =
+                        (nN[i] + nNE[i] + nNW[i] - nS[i] - nSE[i] - nSW[i]) *
+                            (1 - (rho[i] - 1) + (rho[i] - 1) ** 2);
                     // # Pre-compute some convenient constants
                     const one9th_rho = one9th * rho[i];
                     const one36th_rho = one36th * rho[i];
@@ -132,12 +148,26 @@ const Collide = () => {
                     nW[i] += omega * (one9th_rho * (1 - vx3 + 4.5 * vx2 - v215) - nW[i]);
                     nN[i] += omega * (one9th_rho * (1 + vy3 + 4.5 * vy2 - v215) - nN[i]);
                     nS[i] += omega * (one9th_rho * (1 - vy3 + 4.5 * vy2 - v215) - nS[i]);
-                    nNE[i] += omega * (one36th_rho * (1 + vx3 + vy3 + 4.5 * (v2 + vxvy2) - v215) - nNE[i]);
-                    nNW[i] += omega * (one36th_rho * (1 - vx3 + vy3 + 4.5 * (v2 - vxvy2) - v215) - nNW[i]);
-                    nSE[i] += omega * (one36th_rho * (1 + vx3 - vy3 + 4.5 * (v2 - vxvy2) - v215) - nSE[i]);
-                    nSW[i] += omega * (one36th_rho * (1 - vx3 - vy3 + 4.5 * (v2 + vxvy2) - v215) - nSW[i]);
+                    nNE[i] +=
+                        omega *
+                            (one36th_rho * (1 + vx3 + vy3 + 4.5 * (v2 + vxvy2) - v215) -
+                                nNE[i]);
+                    nNW[i] +=
+                        omega *
+                            (one36th_rho * (1 - vx3 + vy3 + 4.5 * (v2 - vxvy2) - v215) -
+                                nNW[i]);
+                    nSE[i] +=
+                        omega *
+                            (one36th_rho * (1 + vx3 - vy3 + 4.5 * (v2 - vxvy2) - v215) -
+                                nSE[i]);
+                    nSW[i] +=
+                        omega *
+                            (one36th_rho * (1 - vx3 - vy3 + 4.5 * (v2 + vxvy2) - v215) -
+                                nSW[i]);
                     // # Conserve mass
-                    n0[i] = rho[i] - (nE[i] + nW[i] + nN[i] + nS[i] + nNE[i] + nSE[i] + nNW[i] + nSW[i]);
+                    n0[i] =
+                        rho[i] -
+                            (nE[i] + nW[i] + nN[i] + nS[i] + nNE[i] + nSE[i] + nNW[i] + nSW[i]);
                 }
             }
         }
@@ -147,29 +177,34 @@ const initialization = (xtop, ytop, yheight, u0 = 0.1) => {
     let xcoord = 0;
     let ycoord = 0;
     let count = 0;
-    for (let i = 0; i < (WIDTH * HEIGHT); i++) {
-        n0[i] = four9ths * (1 - 1.5 * (u0 ** 2.));
-        nN[i] = one9th * (1 - 1.5 * (u0 ** 2.));
-        nS[i] = one9th * (1 - 1.5 * (u0 ** 2.));
-        nE[i] = one9th * (1 + 3 * u0 + 4.5 * (u0 ** 2.) - 1.5 * (u0 ** 2.));
-        nW[i] = one9th * (1 - 3 * u0 + 4.5 * (u0 ** 2.) - 1.5 * (u0 ** 2.));
-        nNE[i] = one36th * (1 + 3 * u0 + 4.5 * (u0 ** 2.) - 1.5 * (u0 ** 2.));
-        nSE[i] = one36th * (1 + 3 * u0 + 4.5 * (u0 ** 2.) - 1.5 * (u0 ** 2.));
-        nNW[i] = one36th * (1 - 3 * u0 + 4.5 * (u0 ** 2.) - 1.5 * (u0 ** 2.));
-        nSW[i] = one36th * (1 - 3 * u0 + 4.5 * (u0 ** 2.) - 1.5 * (u0 ** 2.));
-        rho[i] = n0[i] + nN[i] + nS[i] + nE[i] + nW[i] + nNE[i] + nSE[i] + nNW[i] + nSW[i];
-        ux[i] = (nE[i] + nNE[i] + nSE[i] - nW[i] - nNW[i] - nSW[i]) * (1 - (rho[i] - 1) + ((rho[i] - 1) ** 2.));
-        uy[i] = (nN[i] + nNE[i] + nNW[i] - nS[i] - nSE[i] - nSW[i]) * (1 - (rho[i] - 1) + ((rho[i] - 1) ** 2.));
+    for (let i = 0; i < WIDTH * HEIGHT; i++) {
+        n0[i] = four9ths * (1 - 1.5 * u0 ** 2);
+        nN[i] = one9th * (1 - 1.5 * u0 ** 2);
+        nS[i] = one9th * (1 - 1.5 * u0 ** 2);
+        nE[i] = one9th * (1 + 3 * u0 + 4.5 * u0 ** 2 - 1.5 * u0 ** 2);
+        nW[i] = one9th * (1 - 3 * u0 + 4.5 * u0 ** 2 - 1.5 * u0 ** 2);
+        nNE[i] = one36th * (1 + 3 * u0 + 4.5 * u0 ** 2 - 1.5 * u0 ** 2);
+        nSE[i] = one36th * (1 + 3 * u0 + 4.5 * u0 ** 2 - 1.5 * u0 ** 2);
+        nNW[i] = one36th * (1 - 3 * u0 + 4.5 * u0 ** 2 - 1.5 * u0 ** 2);
+        nSW[i] = one36th * (1 - 3 * u0 + 4.5 * u0 ** 2 - 1.5 * u0 ** 2);
+        rho[i] =
+            n0[i] + nN[i] + nS[i] + nE[i] + nW[i] + nNE[i] + nSE[i] + nNW[i] + nSW[i];
+        ux[i] =
+            (nE[i] + nNE[i] + nSE[i] - nW[i] - nNW[i] - nSW[i]) *
+                (1 - (rho[i] - 1) + (rho[i] - 1) ** 2);
+        uy[i] =
+            (nN[i] + nNE[i] + nNW[i] - nS[i] - nSE[i] - nSW[i]) *
+                (1 - (rho[i] - 1) + (rho[i] - 1) ** 2);
         if (xcoord == xtop) {
             if (ycoord >= ytop) {
-                if (ycoord < (ytop + yheight)) {
+                if (ycoord < ytop + yheight) {
                     count += 1;
                     bar[ycoord * WIDTH + xcoord] = 1;
                 }
             }
         }
-        if (xcoord < (WIDTH - 1)) {
-            xcoord = (xcoord + 1);
+        if (xcoord < WIDTH - 1) {
+            xcoord = xcoord + 1;
         }
         else
             0;
@@ -177,6 +212,24 @@ const initialization = (xtop, ytop, yheight, u0 = 0.1) => {
             ycoord = ycoord;
         }
         else
-            (ycoord + 1);
+            ycoord + 1;
     }
 };
+const main = () => {
+    initialization(25, 11, 10);
+    let time = performance.now();
+    let newTime = performance.now();
+    //   console.log("Testing")
+    for (let i = 0; i < 10000; i++) {
+        Stream();
+        Bounce();
+        Collide();
+        newTime = performance.now();
+        if (i % 100 == 0) {
+            console.log("dt = " + (newTime - time));
+            console.log("N0[3000] = " + n0[2000] + "\n");
+        }
+        time = newTime;
+    }
+};
+main();
