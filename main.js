@@ -42,7 +42,7 @@ const Flatten2D = (x, y) => {
 const Expand2D = (k) => {
     return [(k % WIDTH), Math.floor(k / WIDTH)];
 };
-const stream = () => {
+const Stream = () => {
     for (let x = 0; x < WIDTH - 1; x++) {
         for (let y = 1; y < HEIGHT - 1; y++) {
             // # Movement north (Northwest corner)
@@ -68,6 +68,33 @@ const stream = () => {
             nN[y * WIDTH + x] = nN[y * WIDTH + x + WIDTH];
             // # Movement south on right boundary (Southwest corner)
             nS[(HEIGHT - y - 1) * WIDTH + x] = nS[(HEIGHT - y - 1 - 1) * WIDTH + x];
+        }
+    }
+};
+const Bounce = () => {
+    for (let x = 2; x < WIDTH - 2; x++) {
+        for (let y = 2; y < HEIGHT - 2; y++) {
+            if (bar[y * WIDTH + x]) {
+                // # Push densities back from whence they came
+                nN[(y - 1) * WIDTH + x] = nS[y * WIDTH + x];
+                nS[(y + 1) * WIDTH + x] = nN[y * WIDTH + x];
+                nE[y * WIDTH + x + 1] = nW[y * WIDTH + x];
+                nW[y * WIDTH + (x - 1)] = nE[y * WIDTH + x];
+                nNE[(y - 1) * WIDTH + (x + 1)] = nSW[y * WIDTH + x];
+                nNW[(y - 1) * WIDTH + (x - 1)] = nSE[y * WIDTH + x];
+                nSE[(y + 1) * WIDTH + (x + 1)] = nNW[y * WIDTH + x];
+                nSW[(y + 1) * WIDTH + (x - 1)] = nNE[y * WIDTH + x];
+                // # Clear the densities in the barrier cells
+                n0[y * WIDTH + x] = 0;
+                nN[y * WIDTH + x] = 0;
+                nS[y * WIDTH + x] = 0;
+                nE[y * WIDTH + x] = 0;
+                nW[y * WIDTH + x] = 0;
+                nNE[y * WIDTH + x] = 0;
+                nNW[y * WIDTH + x] = 0;
+                nSE[y * WIDTH + x] = 0;
+                nSW[y * WIDTH + x] = 0;
+            }
         }
     }
 };
