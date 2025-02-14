@@ -3,9 +3,9 @@ const canvas = document.getElementById("projectCanvas");
 canvas.width = window.innerWidth * devicePixelRatio;
 canvas.height = window.innerHeight * devicePixelRatio;
 const ctx = canvas.getContext("2d");
-const height = 32;
-const width = 512;
-const viscosity = 0.002;
+const height = 256;
+const width = 256;
+const viscosity = 0.02;
 const omega = 1. / (3 * viscosity + 0.5);
 const u0 = 0.1;
 const four9ths = 4. / 9.;
@@ -183,11 +183,19 @@ const initialize = (xtop, ytop, yheight, u0 = 0.1) => {
 };
 const draw = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const scale = 4;
+    const colourScale = 250;
     for (let x = 0; x < width; x++) {
         for (let y = 0; y < height; y++) {
             if (bar[y * width + x]) {
                 ctx.fillStyle = "black";
-                ctx.fillRect(x, y, 1, 1);
+                ctx.fillRect(x*scale + 100, y*scale + 100, scale, scale);
+            }
+            else {
+                const i = y * width + x;
+                const thingToPlot = Math.sqrt(speed2[i]) * colourScale;
+                ctx.fillStyle = `rgb(${thingToPlot}, 0, ${255 - thingToPlot})`;
+                ctx.fillRect(x*scale + 100, y*scale + 100, scale, scale);
             }
         }
     }
@@ -201,10 +209,10 @@ const tick = () => {
     requestAnimationFrame(tick);
     const newTime = performance.now();
     console.log("Simulation took", newTime - time, "ms");
-    console.log("n0[4000]: ", n0[4000]);
+    // console.log("n0[4000]: ", n0[4000]);
     time = newTime;
 };
-initialize(256, 10, 32);
+initialize(50, 10, 32, 0.1);
 console.log("Initialization took", performance.now() - time, "ms");
 time = performance.now();
 tick();

@@ -245,7 +245,13 @@ const draw = () => {
         for(let y = 0; y<height; y++){
             if (bar[y*width + x]){
                 ctx.fillStyle = "black"
-                ctx.fillRect(x, y, 1, 1)
+                ctx.fillRect(x+100, y+100, 1, 1)
+            }
+            else{
+                const i = y*width + x
+                const c = Math.floor(255 * Math.sqrt(speed2[i]))
+                ctx.fillStyle = `rgb(${c}, ${c}, ${c})`
+                ctx.fillRect(x+100, y+100, 10, 10)
             }
         }
     }
