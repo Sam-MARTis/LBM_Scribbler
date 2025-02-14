@@ -34,3 +34,20 @@ const speed2 = new Float32Array(size).fill(0); // Cell squared velocity
 function twoDto1D(i:number,j: number) {
     return WIDTH * j + i ; // We can Adjust for 0-based indexing
 }
+
+
+let n;
+function oneDto2D (n){
+    let i,j;
+    if n=WIDTH*j+i;
+    0<=i<=2 && 0<=j<=2;
+    return i,j;
+}
+let n;
+
+function oneDto2D(n : number) {
+    let i = n % WIDTH; // Column index
+    let j = Math.floor(n / WIDTH); // Row index
+    console.log(i,j);
+}
+oneDto2D(5);
