@@ -11,6 +11,10 @@ const array1 = new Float32Array(WIDTH * HEIGHT).fill(0)
 const viscosity = 0.02
 const omega = 1. / (3 * viscosity + 0.5)
 const u0 = 0.1
+const four9ths = 4./9.                // # a constant
+const one9th   = 1./9.                 //# a constant
+const one36th  = 1./36.               // # a constant
+
 // Directions
 const n0 = new Float32Array(WIDTH * HEIGHT).fill(0)
 const nN = new Float32Array(WIDTH * HEIGHT).fill(0)
@@ -109,3 +113,48 @@ const Bounce = (): void => {
     }
 }
 
+const Collide = (): void => {
+    for (let x = 1; x<WIDTH-1; x++){
+        for (let y = 1; y<HEIGHT-1; y++){
+            const i = (y*WIDTH) + x;
+            // # Skip over cells containing barriers
+            if (bar[i]){
+                continue
+            }
+            else{
+                // # Compute the macroscopic density
+                rho[i] = n0[i] + nN[i] + nE[i] + nS[i] + nW[i] + nNE[i] + nSE[i] + nSW[i] + nNW[i];
+                // # Compute the macroscopic velocities
+                if (rho[i] > 0){
+                    ux[i]  = (nE[i] + nNE[i] + nSE[i] - nW[i] - nNW[i] - nSW[i]) * (1-(rho[i]-1)+((rho[i]-1)**2.))
+                    uy[i]  = (nN[i] + nNE[i] + nNW[i] - nS[i] - nSE[i] - nSW[i]) * (1-(rho[i]-1)+((rho[i]-1)**2.))
+                    
+                // # Pre-compute some convenient constants
+                const one9th_rho = one9th * rho[i]
+                const one36th_rho = one36th * rho[i]
+                const vx3 = 3 * ux[i]
+                const vy3 = 3 * uy[i]
+                const vx2 = ux[i] * ux[i]
+                const vy2 = uy[i] * uy[i]
+                const vxvy2 = 2 * ux[i] * uy[i]
+                const v2 = vx2 + vy2
+                speed2[i] = v2
+                const v215 = 1.5 * v2
+                
+                // # Update densities
+                nE[i]  += omega * (   one9th_rho * (1 + vx3       + 4.5*vx2        - v215) - nE[i])
+                nW[i]  += omega * (   one9th_rho * (1 - vx3       + 4.5*vx2        - v215) - nW[i])
+                nN[i]  += omega * (   one9th_rho * (1 + vy3       + 4.5*vy2        - v215) - nN[i])
+                nS[i]  += omega * (   one9th_rho * (1 - vy3       + 4.5*vy2        - v215) - nS[i])
+                nNE[i] += omega * (  one36th_rho * (1 + vx3 + vy3 + 4.5*(v2+vxvy2) - v215) - nNE[i])
+                nNW[i] += omega * (  one36th_rho * (1 - vx3 + vy3 + 4.5*(v2-vxvy2) - v215) - nNW[i])
+                nSE[i] += omega * (  one36th_rho * (1 + vx3 - vy3 + 4.5*(v2-vxvy2) - v215) - nSE[i])
+                nSW[i] += omega * (  one36th_rho * (1 - vx3 - vy3 + 4.5*(v2+vxvy2) - v215) - nSW[i])
+                
+                // # Conserve mass
+                n0[i]   = rho[i] - (nE[i]+nW[i]+nN[i]+nS[i]+nNE[i]+nSE[i]+nNW[i]+nSW[i]);
+                }
+                }
+        }
+    }
+}
