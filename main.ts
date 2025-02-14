@@ -29,15 +29,20 @@ const ux = new Float32Array(WIDTH*HEIGHT).fill(0)
 const uy = new Float32Array(WIDTH*HEIGHT).fill(0)
 const speed2 = new Float32Array(WIDTH*HEIGHT).fill(0)
 
-function converter(x:number,y:number){
-    let n = (y*WIDTH)+x;
-    console.log(n);
+// function Flatten2D(x:number,y:number){
+//     let n = (y*WIDTH)+x;
+//     console.log(n);
+// }
+const Flatten2D = (x: number, y: number):number => {
+    return (y*WIDTH) + x;
+    
 }
-converter(2,5);
 
-function converter2(m:number){
+
+
+function Expand1D(m:number){
     let y = (m/WIDTH);
     let x = m%WIDTH;
     console.log(Math.floor(y), x);
 }
-converter2(1282);
+
