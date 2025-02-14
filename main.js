@@ -143,3 +143,40 @@ const Collide = () => {
         }
     }
 };
+const initialization = (xtop, ytop, yheight, u0 = 0.1) => {
+    let xcoord = 0;
+    let ycoord = 0;
+    let count = 0;
+    for (let i = 0; i < (WIDTH * HEIGHT); i++) {
+        n0[i] = four9ths * (1 - 1.5 * (u0 ** 2.));
+        nN[i] = one9th * (1 - 1.5 * (u0 ** 2.));
+        nS[i] = one9th * (1 - 1.5 * (u0 ** 2.));
+        nE[i] = one9th * (1 + 3 * u0 + 4.5 * (u0 ** 2.) - 1.5 * (u0 ** 2.));
+        nW[i] = one9th * (1 - 3 * u0 + 4.5 * (u0 ** 2.) - 1.5 * (u0 ** 2.));
+        nNE[i] = one36th * (1 + 3 * u0 + 4.5 * (u0 ** 2.) - 1.5 * (u0 ** 2.));
+        nSE[i] = one36th * (1 + 3 * u0 + 4.5 * (u0 ** 2.) - 1.5 * (u0 ** 2.));
+        nNW[i] = one36th * (1 - 3 * u0 + 4.5 * (u0 ** 2.) - 1.5 * (u0 ** 2.));
+        nSW[i] = one36th * (1 - 3 * u0 + 4.5 * (u0 ** 2.) - 1.5 * (u0 ** 2.));
+        rho[i] = n0[i] + nN[i] + nS[i] + nE[i] + nW[i] + nNE[i] + nSE[i] + nNW[i] + nSW[i];
+        ux[i] = (nE[i] + nNE[i] + nSE[i] - nW[i] - nNW[i] - nSW[i]) * (1 - (rho[i] - 1) + ((rho[i] - 1) ** 2.));
+        uy[i] = (nN[i] + nNE[i] + nNW[i] - nS[i] - nSE[i] - nSW[i]) * (1 - (rho[i] - 1) + ((rho[i] - 1) ** 2.));
+        if (xcoord == xtop) {
+            if (ycoord >= ytop) {
+                if (ycoord < (ytop + yheight)) {
+                    count += 1;
+                    bar[ycoord * WIDTH + xcoord] = 1;
+                }
+            }
+        }
+        if (xcoord < (WIDTH - 1)) {
+            xcoord = (xcoord + 1);
+        }
+        else
+            0;
+        if (xcoord != 0) {
+            ycoord = ycoord;
+        }
+        else
+            (ycoord + 1);
+    }
+};
