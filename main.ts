@@ -40,9 +40,13 @@ const Flatten2D = (x: number, y: number):number => {
 
 
 
-function Expand1D(m:number){
-    let y = (m/WIDTH);
-    let x = m%WIDTH;
-    console.log(Math.floor(y), x);
-}
+// function Expand1D(m:number){
+//     let y = (m/WIDTH);
+//     let x = m%WIDTH;
+//     console.log(Math.floor(y), x);
+// }
+
+const Expand2D = (k:number):[number, number]=>{
+    return [(k%WIDTH), Math.floor(k/WIDTH)]
+} 
 
