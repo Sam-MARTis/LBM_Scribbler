@@ -3,11 +3,11 @@ canvas.width = window.innerWidth * devicePixelRatio;
 canvas.height = window.innerHeight * devicePixelRatio;
 const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
-const height = 80                   
+const height = 100                   
 const width = 200   
 const multiplier = 1.5
-const viscosity = 0.005*multiplier       
-const omega = 1/(3*viscosity+0.5)
+let viscosity = 0.005*multiplier       
+let omega = 1/(3*viscosity+0.5)
 const u0 = 0.2/multiplier    
 const four9ths = 4./9.                
 const one9th   = 1./9.                
@@ -30,7 +30,28 @@ let rho   = new Float32Array(new ArrayBuffer(height*width*Float32Array.BYTES_PER
 let ux    = new Float32Array(new ArrayBuffer(height*width*Float32Array.BYTES_PER_ELEMENT))
 let uy    = new Float32Array(new ArrayBuffer(height*width*Float32Array.BYTES_PER_ELEMENT))
 let speed2= new Float32Array(new ArrayBuffer(height*width*Float32Array.BYTES_PER_ELEMENT))
-let plotOption: String = "vx";
+let plotOption: String = "curl";
+
+const plotSelect = document.getElementById("plotOptions") as HTMLSelectElement;
+
+// Add an event listener to detect changes in the dropdown
+plotSelect.addEventListener("change", () => {
+    // Update the PlotOption variable to the selected value
+    plotOption = plotSelect.value;
+});
+
+
+const viscositySlider = document.getElementById("viscositySlider") as HTMLInputElement;
+
+// Add an event listener to detect changes in the slider
+viscositySlider.addEventListener("input", () => {
+    // Update the viscosity variable to the slider's current value
+    viscosity = parseFloat(viscositySlider.value)*multiplier;
+    omega = 1/(3*viscosity+0.5)
+    // console.log(`Viscosity updated to: ${viscosity}`);
+});
+
+
 const flatten2D = (i: number, j:number): number => {
     return j*width + i
 }
@@ -261,12 +282,16 @@ const draw = () => {
             } else {
                 let c = 0;
                 switch (plotOption) {
+                    case "rho":
+                        c = 1*Math.floor(200 * (rho[i]**6));
+                        ctx.fillStyle = `rgb(${c}, ${c}, ${c})`;
+                        break;
                     case "vx":
-                        c = Math.floor(255 * rho[i]);
+                        c = 10*Math.floor(255 * ux[i]);
                         ctx.fillStyle = `rgb(${0}, ${c}, ${c})`;
                         break;
                     case "vy":
-                        c = 10*Math.floor(255 * ux[i]);
+                        c = 10*Math.floor(255 * uy[i]);
                         ctx.fillStyle = `rgb(${c}, ${c}, ${0})`;
                         break;
                     case "speed":
@@ -298,7 +323,7 @@ addEventListener("click", (e) => {
 
     // Ensure the clicked position is within valid bounds
     if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
-        createWall(posX, posY);
+        // createWall(posX, posY);
     }
 });
 
