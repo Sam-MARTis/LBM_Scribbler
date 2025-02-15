@@ -91,54 +91,79 @@ const Expand2D = (k: number): [number, number] => {
 //}
 //});
 
-const gpu:any = new GPU();
-
-const StreamKernel = gpu.createKernel(function ( nN: any, nNW: any, nW: any, nS: any, nSW: any, nE: any, nNE:any, nSE: any, WIDTH: number, HEIGHT: number) {
-    let x = this.thread.x;
-    let y = this.thread.y;
-
-    if (x < WIDTH - 1 && y > 0 && y < HEIGHT - 1) {
-        // Movement north (Northwest corner)
-        nN[y * WIDTH + x] = nN[y * WIDTH + x + WIDTH];
-
-        // Movement northwest (Northwest corner)
-        nNW[y * WIDTH + x] = nNW[y * WIDTH + x + WIDTH + 1];
-
-        // Movement west (Northwest corner)
-        nW[y * WIDTH + x] = nW[y * WIDTH + x + 1];
-
-        // Movement south (Southwest corner)
-        nS[(HEIGHT - y - 1) * WIDTH + x] = nS[(HEIGHT - y - 1 - 1) * WIDTH + x];
-
-        // Movement southwest (Southwest corner)
-        nSW[(HEIGHT - y - 1) * WIDTH + x] = nSW[(HEIGHT - y - 1 - 1) * WIDTH + x + 1];
-
-        // Movement east (Northeast corner)
-        nE[y * WIDTH + (WIDTH - x - 1)] = nE[y * WIDTH + (WIDTH - (x + 1) - 1)];
-
-        // Movement northeast (Northeast corner)
-        nNE[y * WIDTH + (WIDTH - x - 1)] = nNE[y * WIDTH + WIDTH + (WIDTH - (x + 1) - 1)];
-
-        // Movement southeast (Southeast corner)
-        nSE[(HEIGHT - y - 1) * WIDTH + (WIDTH - x - 1)] = nSE[(HEIGHT - y - 1 - 1) * WIDTH + (WIDTH - (x + 1) - 1)];
+function stream(nN:any, nNW:any, nW:any, nS: any, nSW: any, nE: any, nNE: any, nSE: any, width: any, height: any) {
+    // Stream all internal cells
+    for (let x = 0; x < width - 1; x++) {
+        for (let y = 1; y < height - 1; y++) {
+            // Movement north (Northwest corner)
+            nN[y * width + x] = nN[y * width + x + width];
+            // Movement northwest (Northwest corner)
+            nNW[y * width + x] = nNW[y * width + x + width + 1];
+            // Movement west (Northwest corner)
+            nW[y * width + x] = nW[y * width + x + 1];
+            // Movement south (Southwest corner)
+            nS[(height - y - 1) * width + x] = nS[(height - y - 1 - 1) * width + x];
+            // Movement southwest (Southwest corner)
+            nSW[(height - y - 1) * width + x] = nSW[(height - y - 1 - 1) * width + x + 1];
+            // Movement east (Northeast corner)
+            nE[y * width + (width - x - 1)] = nE[y * width + (width - (x + 1) - 1)];
+            // Movement northeast (Northeast corner)
+            nNE[y * width + (width - x - 1)] = nNE[y * width + width + (width - (x + 1) - 1)];
+            // Movement southeast (Southeast corner)
+            nSE[(height - y - 1) * width + (width - x - 1)] = nSE[(height - y - 1 - 1) * width + (width - (x + 1) - 1)];
+        }
+    }function createWorker(array:any, type:any) {
+        return new Promise<void>((resolve) => {
+            const worker = new Worker("worker.js");
+            worker.postMessage({ array, width, height, type });
+    
+            worker.onmessage = (e) => {
+                switch (e.data.type) {
+                    case "nN": nN = e.data.updatedArray; break;
+                    case "nNW": nNW = e.data.updatedArray; break;
+                    case "nW": nW = e.data.updatedArray; break;
+                    case "nS": nS = e.data.updatedArray; break;
+                    case "nSW": nSW = e.data.updatedArray; break;
+                    case "nE": nE = e.data.updatedArray; break;
+                    case "nNE": nNE = e.data.updatedArray; break;
+                    case "nSE": nSE = e.data.updatedArray; break;
+                }
+                worker.terminate();
+                resolve ();
+            };
+        });
     }
-}, {
-    output: [WIDTH, HEIGHT]  // Creates a 2D output grid
-});
+    
+    // Run all workers in parallel
+    async function runWorkers() {
+        await Promise.all([
+            createWorker(nN, "nN"),
+            createWorker(nNW, "nNW"),
+            createWorker(nW, "nW"),
+            createWorker(nS, "nS"),
+            createWorker(nSW, "nSW"),
+            createWorker(nE, "nE"),
+            createWorker(nNE, "nNE"),
+            createWorker(nSE, "nSE")
+        ]);
+        console.log("All Web Workers completed their tasks!");
+}
 
-// Dummy data (initialize arrays with zeros)
-//const WIDTH = 100, HEIGHT = 100;
-//const nN = new Array(WIDTH * HEIGHT).fill(0);
-//const nNW = new Array(WIDTH * HEIGHT).fill(0);
-//const nW = new Array(WIDTH * HEIGHT).fill(0);
-//const nS = new Array(WIDTH * HEIGHT).fill(0);
-//const nSW = new Array(WIDTH * HEIGHT).fill(0);
-//const nE = new Array(WIDTH * HEIGHT).fill(0);
-//const nNE = new Array(WIDTH * HEIGHT).fill(0);
-//const nSE = new Array(WIDTH * HEIGHT).fill(0);
+// Start the process
+runWorkers();
 
-// Run the kernel
-StreamKernel(nN, nNW, nW, nS, nSW, nE, nNE, nSE, WIDTH, HEIGHT);
+    // Tidy up the edges
+    let x = width - 1; // Correcting x value for edge case
+    for (let y = 1; y < height - 1; y++) {
+        // Movement north on right boundary (Northwest corner)
+        nN[y * width + x] = nN[y * width + x + width];
+        // Movement south on right boundary (Southwest corner)
+        nS[(height - y - 1) * width + x] = nS[(height - y - 1 - 1) * width + x];
+    }
+}
+
+// Run the kernel had we used GPU .js 
+//StreamKernel(nN, nNW, nW, nS, nSW, nE, nNE, nSE, WIDTH, HEIGHT);
 
 const Bounce = (): void => {
     for (let x = 2; x<WIDTH-2; x++){
@@ -168,6 +193,7 @@ const Bounce = (): void => {
         }
     }
 }
+
 
 const Collide = (): void => {
     for (let x = 1; x<WIDTH-1; x++){
@@ -254,5 +280,4 @@ const initialization = (xtop:number, ytop:number, yheight:number, u0:number = 0.
             ycoord = ycoord;
         }
         else (ycoord + 1);
-    } 
-}
+    } }
