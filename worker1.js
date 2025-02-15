@@ -1,9 +1,11 @@
 self.onmessage = (e) => {
-    const { width, height, arrayBuffer, arrayType } = e.data;
+    const { arrayBuffer, arrayType, width, height } = e.data;
     const array = new Float32Array(arrayBuffer);
+    console.log(arrayType);
 
     switch (arrayType) {
         case 'nN':
+            console.log('Worker handling nN');
             for (let x = 0; x < width - 1; x++) {
                 for (let y = 1; y < height - 1; y++) {
                     array[y * width + x] = array[y * width + x + width];
@@ -16,6 +18,7 @@ self.onmessage = (e) => {
             break;
 
         case 'nNW':
+            console.log('Worker handling nNW');
             for (let x = 0; x < width - 1; x++) {
                 for (let y = 1; y < height - 1; y++) {
                     array[y * width + x] = array[y * width + x + width + 1];
@@ -24,6 +27,7 @@ self.onmessage = (e) => {
             break;
 
         case 'nW':
+            console.log('Worker handling nW');
             for (let x = 0; x < width - 1; x++) {
                 for (let y = 1; y < height - 1; y++) {
                     array[y * width + x] = array[y * width + x + 1];
@@ -31,6 +35,7 @@ self.onmessage = (e) => {
             }
             break;
         case 'nSW':
+            console.log('Worker handling nSW');
             for (let x = 0; x < width - 1; x++) {
                 for (let y = 1; y < height - 1; y++) {
                     array[(height-y-1)*width + x] = array[(height-y-1-1)*width + x + 1]
@@ -40,6 +45,7 @@ self.onmessage = (e) => {
             break;
 
         case 'nS':
+            console.log('Worker handling nS');
             for (let x = 0; x < width - 1; x++) {
                 for (let y = 1; y < height - 1; y++) {
                     array[(height - y - 1) * width + x] = array[(height - y - 1 - 1) * width + x];
@@ -51,6 +57,7 @@ self.onmessage = (e) => {
             }
             break;
         case 'nSE':
+            console.log('Worker handling nSE');
             for (let x = 0; x < width - 1; x++) {
                 for (let y = 1; y < height - 1; y++) {
                     array[(height-y-1)*width + (width-x-1)] = array[(height-y-1-1)*width + (width-(x+1)-1)]  
@@ -59,6 +66,7 @@ self.onmessage = (e) => {
             break;
 
         case 'nE':
+            console.log('Worker handling nE');
             for (let x = 0; x < width - 1; x++) {
                 for (let y = 1; y < height - 1; y++) {
                     array[y*width + (width-x-1)] = array[y*width + (width-(x+1)-1)]
@@ -67,6 +75,7 @@ self.onmessage = (e) => {
             break;
         
         case 'nNE':
+            console.log('Worker handling nNE');
             for (let x = 0; x < width - 1; x++) {
                 for (let y = 1; y < height - 1; y++) {
                     array[y*width + (width-x-1)] = array[y*width + width + (width-(x+1)-1)]
@@ -96,5 +105,5 @@ self.onmessage = (e) => {
 
     }
 
-    self.postMessage({ array, arrayType });
+    self.postMessage({ array, arrayType }, [array.buffer]);
 };
