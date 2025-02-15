@@ -4,30 +4,30 @@ canvas.width = window.innerWidth * devicePixelRatio;
 canvas.height = window.innerHeight * devicePixelRatio;
 const ctx = canvas.getContext("2d");
 const height = 80;
-const width = 300;
-const multiplier = 1.3;
+const width = 200;
+const multiplier = 1.5;
 const viscosity = 0.01 * multiplier;
 const omega = 1 / (3 * viscosity + 0.5);
-const u0 = 0.1 / multiplier;
+const u0 = 0.2 / multiplier;
 const four9ths = 4. / 9.;
 const one9th = 1. / 9.;
 const one36th = 1. / 36.;
 const CALC_DRAW_RATIO = 15;
 const DRAW_SCALE_X = 0.7 * canvas.width / width;
-let n0 = new Float32Array(height * width);
-let nN = new Float32Array(height * width);
-let nS = new Float32Array(height * width);
-let nE = new Float32Array(height * width);
-let nW = new Float32Array(height * width);
-let nNW = new Float32Array(height * width);
-let nNE = new Float32Array(height * width);
-let nSE = new Float32Array(height * width);
-let nSW = new Float32Array(height * width);
-let bar = new Float32Array(height * width);
-let rho = new Float32Array(height * width);
-let ux = new Float32Array(height * width);
-let uy = new Float32Array(height * width);
-let speed2 = new Float32Array(height * width);
+let n0 = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let nN = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let nS = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let nE = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let nW = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let nNW = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let nNE = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let nSE = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let nSW = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let bar = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let rho = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let ux = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let uy = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let speed2 = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
 const flatten2D = (i, j) => {
     return j * width + i;
 };
@@ -161,7 +161,6 @@ const collide = () => {
 const initialize = (u0 = 0.1) => {
     let xcoord = 0;
     let ycoord = 0;
-    let count = 0;
     for (let i = 0; i < height * width; i++) {
         n0[i] = four9ths * (1 - 1.5 * (u0 ** 2.));
         nN[i] = one9th * (1 - 1.5 * (u0 ** 2.));
@@ -192,7 +191,7 @@ const draw = () => {
             else {
                 const i = y * width + x;
                 // const c = Math.floor(255 * Math.sqrt(speed2[i]))
-                const c = 5000 * (uy[x + 1 + y * width] - uy[x - 1 + y * width] - ux[x + (y + 1) * width] + ux[x + (y - 1) * width]);
+                const c = 3000 * (uy[x + 1 + y * width] - uy[x - 1 + y * width] - ux[x + (y + 1) * width] + ux[x + (y - 1) * width]);
                 ctx.fillStyle = `rgb(${+c}, ${0}, ${-c})`;
                 // ctx.fillStyle = `rgb(${c}, ${c}, ${c})`
                 ctx.fillRect(x * DRAW_SCALE_X, y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
