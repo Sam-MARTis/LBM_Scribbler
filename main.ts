@@ -53,38 +53,92 @@ const Flatten2D = (x: number, y: number): number => {
 const Expand2D = (k: number): [number, number] => {
     return [(k % WIDTH), Math.floor(k / WIDTH)]
 }
-const gpu = new GPU();
+//const gpu = new GPU();
+//
+//const kernel = gpu.createKernel(Stream () {
+//    return this.thread.x * 2;
+//   x = this.thread.x;
+//   y = this.thread.y;
+//
+//const Stream = (): void => {
+//    for (let x = 0; x < WIDTH - 1; x++) {
+//        for (let y = 1; y < HEIGHT - 1; y++) {
+//            // # Movement north (Northwest corner)
+//            nN[y * WIDTH + x] = nN[y * WIDTH + x + WIDTH]
+//            // # Movement northwest (Northwest corner)
+//            nNW[y * WIDTH + x] = nNW[y * WIDTH + x + WIDTH + 1]
+//            // # Movement west (Northwest corner)
+//            nW[y * WIDTH + x] = nW[y * WIDTH + x + 1]
+//            // # Movement south (Southwest corner)
+//            nS[(HEIGHT - y - 1) * WIDTH + x] = nS[(HEIGHT - y - 1 - 1) * WIDTH + x]
+//            // # Movement southwest (Southwest corner)
+//            nSW[(HEIGHT - y - 1) * WIDTH + x] = nSW[(HEIGHT - y - 1 - 1) * WIDTH + x + 1]
+//            // # Movement east (Northeast corner)
+//            nE[y * WIDTH + (WIDTH - x - 1)] = nE[y * WIDTH + (WIDTH - (x + 1) - 1)]
+//            // # Movement northeast (Northeast corner)
+//            nNE[y * WIDTH + (WIDTH - x - 1)] = nNE[y * WIDTH + WIDTH + (WIDTH - (x + 1) - 1)]
+//            // # Movement southeast (Southeast corner)
+//            nSE[(HEIGHT - y - 1) * WIDTH + (WIDTH - x - 1)] = nSE[(HEIGHT - y - 1 - 1) * WIDTH + (WIDTH - (x + 1) - 1)]
+//        }
+//        x += 1;
+//        for (let y = 1; y < HEIGHT - 1; y++) {
+//            // # Movement north on right boundary (Northwest corner)
+//            nN[y * WIDTH + x] = nN[y * WIDTH + x + WIDTH]
+//            // # Movement south on right boundary (Southwest corner)
+//            nS[(HEIGHT - y - 1) * WIDTH + x] = nS[(HEIGHT - y - 1 - 1) * WIDTH + x]
+//        }
+//    }
+//}
+//});
 
+const gpu:any = new GPU();
 
-const Stream = (): void => {
-    for (let x = 0; x < WIDTH - 1; x++) {
-        for (let y = 1; y < HEIGHT - 1; y++) {
-            // # Movement north (Northwest corner)
-            nN[y * WIDTH + x] = nN[y * WIDTH + x + WIDTH]
-            // # Movement northwest (Northwest corner)
-            nNW[y * WIDTH + x] = nNW[y * WIDTH + x + WIDTH + 1]
-            // # Movement west (Northwest corner)
-            nW[y * WIDTH + x] = nW[y * WIDTH + x + 1]
-            // # Movement south (Southwest corner)
-            nS[(HEIGHT - y - 1) * WIDTH + x] = nS[(HEIGHT - y - 1 - 1) * WIDTH + x]
-            // # Movement southwest (Southwest corner)
-            nSW[(HEIGHT - y - 1) * WIDTH + x] = nSW[(HEIGHT - y - 1 - 1) * WIDTH + x + 1]
-            // # Movement east (Northeast corner)
-            nE[y * WIDTH + (WIDTH - x - 1)] = nE[y * WIDTH + (WIDTH - (x + 1) - 1)]
-            // # Movement northeast (Northeast corner)
-            nNE[y * WIDTH + (WIDTH - x - 1)] = nNE[y * WIDTH + WIDTH + (WIDTH - (x + 1) - 1)]
-            // # Movement southeast (Southeast corner)
-            nSE[(HEIGHT - y - 1) * WIDTH + (WIDTH - x - 1)] = nSE[(HEIGHT - y - 1 - 1) * WIDTH + (WIDTH - (x + 1) - 1)]
-        }
-        x += 1;
-        for (let y = 1; y < HEIGHT - 1; y++) {
-            // # Movement north on right boundary (Northwest corner)
-            nN[y * WIDTH + x] = nN[y * WIDTH + x + WIDTH]
-            // # Movement south on right boundary (Southwest corner)
-            nS[(HEIGHT - y - 1) * WIDTH + x] = nS[(HEIGHT - y - 1 - 1) * WIDTH + x]
-        }
+const StreamKernel = gpu.createKernel(function ( nN: any, nNW: any, nW: any, nS: any, nSW: any, nE: any, nNE:any, nSE: any, WIDTH: number, HEIGHT: number) {
+    let x = this.thread.x;
+    let y = this.thread.y;
+
+    if (x < WIDTH - 1 && y > 0 && y < HEIGHT - 1) {
+        // Movement north (Northwest corner)
+        nN[y * WIDTH + x] = nN[y * WIDTH + x + WIDTH];
+
+        // Movement northwest (Northwest corner)
+        nNW[y * WIDTH + x] = nNW[y * WIDTH + x + WIDTH + 1];
+
+        // Movement west (Northwest corner)
+        nW[y * WIDTH + x] = nW[y * WIDTH + x + 1];
+
+        // Movement south (Southwest corner)
+        nS[(HEIGHT - y - 1) * WIDTH + x] = nS[(HEIGHT - y - 1 - 1) * WIDTH + x];
+
+        // Movement southwest (Southwest corner)
+        nSW[(HEIGHT - y - 1) * WIDTH + x] = nSW[(HEIGHT - y - 1 - 1) * WIDTH + x + 1];
+
+        // Movement east (Northeast corner)
+        nE[y * WIDTH + (WIDTH - x - 1)] = nE[y * WIDTH + (WIDTH - (x + 1) - 1)];
+
+        // Movement northeast (Northeast corner)
+        nNE[y * WIDTH + (WIDTH - x - 1)] = nNE[y * WIDTH + WIDTH + (WIDTH - (x + 1) - 1)];
+
+        // Movement southeast (Southeast corner)
+        nSE[(HEIGHT - y - 1) * WIDTH + (WIDTH - x - 1)] = nSE[(HEIGHT - y - 1 - 1) * WIDTH + (WIDTH - (x + 1) - 1)];
     }
-}
+}, {
+    output: [WIDTH, HEIGHT]  // Creates a 2D output grid
+});
+
+// Dummy data (initialize arrays with zeros)
+//const WIDTH = 100, HEIGHT = 100;
+//const nN = new Array(WIDTH * HEIGHT).fill(0);
+//const nNW = new Array(WIDTH * HEIGHT).fill(0);
+//const nW = new Array(WIDTH * HEIGHT).fill(0);
+//const nS = new Array(WIDTH * HEIGHT).fill(0);
+//const nSW = new Array(WIDTH * HEIGHT).fill(0);
+//const nE = new Array(WIDTH * HEIGHT).fill(0);
+//const nNE = new Array(WIDTH * HEIGHT).fill(0);
+//const nSE = new Array(WIDTH * HEIGHT).fill(0);
+
+// Run the kernel
+StreamKernel(nN, nNW, nW, nS, nSW, nE, nNE, nSE, WIDTH, HEIGHT);
 
 const Bounce = (): void => {
     for (let x = 2; x<WIDTH-2; x++){
