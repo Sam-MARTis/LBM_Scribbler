@@ -35,6 +35,22 @@ plotSelect.addEventListener("change", () => {
     // Update the PlotOption variable to the selected value
     plotOption = plotSelect.value;
 });
+let paused = false;
+let animVal = null;
+const but1 = document.getElementById("but1");
+but1.addEventListener("click", () => {
+    paused = !paused; // Toggle the paused state
+    if (!paused) {
+        // Resume the animation
+        tick();
+    }
+    else {
+        // Pause the animation by canceling the next frame
+        if (animVal !== null) {
+            cancelAnimationFrame(animVal);
+        }
+    }
+});
 const viscositySlider = document.getElementById("viscositySlider");
 // Add an event listener to detect changes in the slider
 viscositySlider.addEventListener("input", () => {
@@ -255,13 +271,16 @@ addEventListener("click", (e) => {
 });
 let time = performance.now();
 const tick = () => {
+    if (paused) {
+        return;
+    }
     for (let iter = 0; iter < CALC_DRAW_RATIO; iter++) {
         stream();
         bounce();
         collide();
     }
     draw();
-    requestAnimationFrame(tick);
+    animVal = requestAnimationFrame(tick);
     const newTime = performance.now();
     // console.log("Simulation took", newTime-time, "ms")
     // console.log("n0[4000]: ", n0[4000])
