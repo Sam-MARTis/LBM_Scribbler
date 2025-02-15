@@ -12,8 +12,8 @@ const canvas = document.getElementById("projectCanvas");
 canvas.width = window.innerWidth * devicePixelRatio;
 canvas.height = window.innerHeight * devicePixelRatio;
 const ctx = canvas.getContext("2d");
-const height = 5;
-const width = 5;
+const height = 60;
+const width = 100;
 const multiplier = 1.5;
 const viscosity = 0.01 * multiplier;
 const omega = 1 / (3 * viscosity + 0.5);
@@ -21,7 +21,7 @@ const u0 = 0.1 / multiplier;
 const four9ths = 4 / 9;
 const one9th = 1 / 9;
 const one36th = 1 / 36;
-const CALC_DRAW_RATIO = 15;
+const CALC_DRAW_RATIO = 10;
 const DRAW_SCALE_X = (0.7 * canvas.width) / width;
 let n0 = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT)).fill(0);
 let nN = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT)).fill(0);
@@ -57,72 +57,78 @@ const postMessageToWorker = (worker, message) => {
     });
 };
 // Asynchronous function to process data with workers
-const processWithWorkers = () => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("Processing with workers...");
-    try {
-        // Create an array of promises for each worker
-        const promises = [
-            postMessageToWorker(work1, { arrayBuffer: nN, arrayType: "nN", width, height }),
-            postMessageToWorker(work2, { arrayBuffer: nNW, arrayType: "nNW", width, height }),
-            postMessageToWorker(work3, { arrayBuffer: nW, arrayType: "nW", width, height }),
-            postMessageToWorker(work4, { arrayBuffer: nS, arrayType: "nS", width, height }),
-            postMessageToWorker(work5, { arrayBuffer: nSW, arrayType: "nSW", width, height }),
-            postMessageToWorker(work6, { arrayBuffer: nE, arrayType: "nE", width, height }),
-            postMessageToWorker(work7, { arrayBuffer: nNE, arrayType: "nNE", width, height }),
-            postMessageToWorker(work8, { arrayBuffer: nSE, arrayType: "nSE", width, height }),
-        ];
-        // Wait for all workers to finish processing
-        const results = yield Promise.all(promises);
-        console.log("All workers finished processing.");
-        console.log(results); // Handle the results from all workers
-        // Process each worker's response
-        for (let i = 0; i < results.length; i++) {
-            const { array, arrayType } = results[i];
-            switch (arrayType) {
-                case "nN":
-                    nN = new Float32Array(array);
-                    break;
-                case "nNW":
-                    nNW = new Float32Array(array);
-                    break;
-                case "nW":
-                    nW = new Float32Array(array);
-                    break;
-                case "nS":
-                    nS = new Float32Array(array);
-                    break;
-                case "nSW":
-                    nSW = new Float32Array(array);
-                    break;
-                case "nE":
-                    nE = new Float32Array(array);
-                    break;
-                case "nNE":
-                    nNE = new Float32Array(array);
-                    break;
-                case "nSE":
-                    nSE = new Float32Array(array);
-                    break;
-                default:
-                    console.error("Unknown array type");
-                    break;
+const processWithWorkers = () => {
+    return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
+        console.log("Processing with workers...");
+        try {
+            // Create an array of promises for each worker
+            const promises = [
+                postMessageToWorker(work1, { arrayBuffer: nN, arrayType: "nN", width, height }),
+                postMessageToWorker(work2, { arrayBuffer: nNW, arrayType: "nNW", width, height }),
+                postMessageToWorker(work3, { arrayBuffer: nW, arrayType: "nW", width, height }),
+                postMessageToWorker(work4, { arrayBuffer: nS, arrayType: "nS", width, height }),
+                postMessageToWorker(work5, { arrayBuffer: nSW, arrayType: "nSW", width, height }),
+                postMessageToWorker(work6, { arrayBuffer: nE, arrayType: "nE", width, height }),
+                postMessageToWorker(work7, { arrayBuffer: nNE, arrayType: "nNE", width, height }),
+                postMessageToWorker(work8, { arrayBuffer: nSE, arrayType: "nSE", width, height }),
+            ];
+            // Wait for all workers to finish processing
+            const results = yield Promise.all(promises);
+            console.log("All workers finished processing.");
+            console.log(results); // Handle the results from all workers
+            // Process each worker's response
+            for (let i = 0; i < results.length; i++) {
+                const { array, arrayType } = results[i];
+                switch (arrayType) {
+                    case "nN":
+                        nN = new Float32Array(array);
+                        break;
+                    case "nNW":
+                        nNW = new Float32Array(array);
+                        break;
+                    case "nW":
+                        nW = new Float32Array(array);
+                        break;
+                    case "nS":
+                        nS = new Float32Array(array);
+                        break;
+                    case "nSW":
+                        nSW = new Float32Array(array);
+                        break;
+                    case "nE":
+                        nE = new Float32Array(array);
+                        break;
+                    case "nNE":
+                        nNE = new Float32Array(array);
+                        break;
+                    case "nSE":
+                        nSE = new Float32Array(array);
+                        break;
+                    default:
+                        console.error("Unknown array type");
+                        break;
+                }
             }
+            // Resolve the promise once processing is complete
+            resolve();
         }
-    }
-    catch (error) {
-        console.error("Error occurred during worker processing:", error);
-    }
-});
+        catch (error) {
+            console.error("Error occurred during worker processing:", error);
+            reject(error); // Reject the promise if an error occurs
+        }
+    }));
+};
 // processWithWorkers();
-const stream = () => __awaiter(void 0, void 0, void 0, function* () {
-    work1.postMessage({ array: nN, arrayType: "nN", width: width, height: height }, [nN.buffer]);
-    work1.onmessage = (e) => {
-        nN = new Float32Array(e.data.array);
-        console.log("nN has been updated by worker 1");
-        console.log(nN);
-    };
-    console.log("All arrays have been updated by the workers");
-});
+// const stream = async (): Promise<void> => {
+//   // work1.postMessage({array: nN, arrayType: "nN", width: width, height: height}, [nN.buffer]);
+//   // work1.onmessage = (e) => {
+//   //   nN = new Float32Array(e.data.array);
+//   //   console.log("nN has been updated by worker 1");
+//   //   console.log(nN);
+//   // }
+//   processWithWorkers();
+//   console.log("All arrays have been updated by the workers");
+// };
 const bounce = () => {
     for (let x = 2; x < width - 2; x++) {
         for (let y = 2; y < height - 2; y++) {
@@ -262,23 +268,38 @@ const createWall = (x, y) => {
     bar[flatten2D(x, y)] = 1;
 };
 let time = performance.now();
-// const tick = () => {
-//   for (let iter = 0; iter < CALC_DRAW_RATIO; iter++) {
-//     stream();
-//     bounce();
-//     collide();
-//   }
-//   draw();
-//   requestAnimationFrame(tick);
-//   const newTime = performance.now();
-//   console.log("Simulation took", newTime - time, "ms");
-//   console.log("n0[4000]: ", n0[4000]);
-//   time = newTime;
-// };
+let iterationCounter = 0; // Counter to track iterations
+const tick = () => {
+    // for (let iter = 0; iter < CALC_DRAW_RATIO; iter++) {
+    // oldStream();
+    processWithWorkers()
+        .then(() => {
+        bounce();
+        collide();
+        // Increment the iteration counter
+        iterationCounter++;
+        // Only draw once when the counter reaches CALC_DRAW_RATIO
+        if (iterationCounter >= CALC_DRAW_RATIO) {
+            draw();
+            iterationCounter = 0; // Reset the counter
+        }
+    })
+        .then(() => {
+        requestAnimationFrame(tick);
+    });
+    // streamThis().then(() => {
+    // bounce();
+    // collide();
+    // });
+    const newTime = performance.now();
+    console.log("Simulation took", newTime - time, "ms");
+    console.log("n0[4000]: ", n0[4000]);
+    time = newTime;
+};
 initialize(u0);
-console.log("nN value after initialization: ", nN);
-stream();
-console.log("nN value after stream: ", nN);
+// console.log("nN value after initialization: ", nN)
+// stream();
+// console.log("nN value after stream: ", nN)
 // stream().then(() => {bounce(); collide(); });
 // collide();
 console.log("Starting Stream");
@@ -296,10 +317,10 @@ addEventListener("click", (e) => {
     // createWall(posX, posY);
     bounce();
     collide();
-    stream();
+    // stream()
     console.log(n0);
     console.log("u[sample]: ", nN[Math.floor(width * Math.floor(height / 2))]);
 });
 console.log("Initialization took", performance.now() - time, "ms");
 time = performance.now();
-// tick();
+tick();
