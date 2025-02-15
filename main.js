@@ -7,7 +7,7 @@ const worker_NE = new Worker('worker_NE.js');
 const worker_NW = new Worker('worker_NW.js');
 const worker_SE = new Worker('worker_SE.js');
 const worker_SW = new Worker('worker_SW.js');
-let sum = 0
+let sum = 0;
 const canvas = document.getElementById("projectCanvas");
 canvas.width = window.innerWidth * devicePixelRatio;
 canvas.height = window.innerHeight * devicePixelRatio;
@@ -31,57 +31,57 @@ let nNW = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_P
 let nNE = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
 let nSE = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
 let nSW = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
-let bar = new Float32Array(height * width )
-let rho = new Float32Array(height * width )
-let ux = new Float32Array(height * width )
-let uy = new Float32Array(height * width )
-let speed2 = new Float32Array(height * width )
+let bar = new Float32Array(height * width );
+let rho = new Float32Array(height * width );
+let ux = new Float32Array(height * width );
+let uy = new Float32Array(height * width );
+let speed2 = new Float32Array(height * width );
 const flatten2D = (i, j) => {
     return j * width + i;
 };
 const stream = () => {
     
-    worker_N.postMessage( {nN, width, height}, [ nN.buffer] )
-    worker_S.postMessage( {nS, width, height}, [ nS.buffer] )
-    worker_E.postMessage( {nE, width, height}, [ nE.buffer] )
-    worker_W.postMessage( {nW, width, height}, [ nW.buffer] )
-    worker_NE.postMessage( {nNE, width, height}, [ nNE.buffer] )
-    worker_NW.postMessage( {nNW, width, height}, [ nNW.buffer] )
-    worker_SE.postMessage( {nSE, width, height}, [ nSE.buffer] )
-    worker_SW.postMessage( {nSW, width, height}, [ nSW.buffer] )
+    worker_N.postMessage( {nN, width, height}, [ nN.buffer] );
+    worker_S.postMessage( {nS, width, height}, [ nS.buffer] );
+    worker_E.postMessage( {nE, width, height}, [ nE.buffer] );
+    worker_W.postMessage( {nW, width, height}, [ nW.buffer] );
+    worker_NE.postMessage( {nNE, width, height}, [ nNE.buffer] );
+    worker_NW.postMessage( {nNW, width, height}, [ nNW.buffer] );
+    worker_SE.postMessage( {nSE, width, height}, [ nSE.buffer] );
+    worker_SW.postMessage( {nSW, width, height}, [ nSW.buffer] );
 
     worker_N.onmessage = function(e){
-        nN = new Float32Array(e.data.nN)
-        sum = sum+1
-    }
+        nN = new Float32Array(e.data.nN);
+        sum = sum+1;
+    };
     worker_E.onmessage = function(e){
-        nE = new Float32Array(e.data.nNE)
-        sum = sum+1
-    }
+        nE = new Float32Array(e.data.nNE);
+        sum = sum+1;
+    };
     worker_W.onmessage = function(e){
-        nW = new Float32Array(e.data.nW)
-        sum = sum+1
-    }
+        nW = new Float32Array(e.data.nW);
+        sum = sum+1;
+    };
     worker_S.onmessage = function(e){
-        nS = new Float32Array(e.data.nS)
-        sum = sum+1
-    }
+        nS = new Float32Array(e.data.nS);
+        sum = sum+1;
+    };
     worker_NE.onmessage = function(e){
-        nNE = new Float32Array(e.data.nNE)
-        sum = sum+1
-    }
+        nNE = new Float32Array(e.data.nNE);
+        sum = sum+1;
+    };
     worker_NW.onmessage = function(e){
-        nNW = new Float32Array(e.data.nNW)
-        sum = sum+1
-    }
+        nNW = new Float32Array(e.data.nNW);
+        sum = sum+1;
+    };
     worker_SE.onmessage = function(e){
-        nSE = new Float32Array(e.data.nSE)
-        sum = sum+1
-    }
+        nSE = new Float32Array(e.data.nSE);
+        sum = sum+1;
+    };
     worker_SW.onmessage = function(e){
-        nSE = new Float32Array(e.data.nSE)
-        sum = sum+1
-    }
+        nSE = new Float32Array(e.data.nSE);
+        sum = sum+1;
+    };
 
 };
 const bounce = () => {
@@ -203,11 +203,11 @@ const createWall = (x, y) => {
 let time = performance.now();
 const tick = () => {
     for (let iter = 0; iter < CALC_DRAW_RATIO; iter++) {
-        sum = 0
+        sum = 0;
         stream();
         while(sum< 8){
         }
-        sum = 0
+        sum = 0;
         bounce();
         collide();
     }

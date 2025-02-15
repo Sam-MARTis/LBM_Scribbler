@@ -1,8 +1,8 @@
 onmessage = function(e){
 
     let nN = new Float32Array(e.data.nN);
-    const width = e.data.width
-    const height = e.data.height
+    const width = e.data.width;
+    const height = e.data.height;
 
       // for x in range(0, width-1):
       for (let x = 0; x < width - 1; x++) {
@@ -17,5 +17,5 @@ onmessage = function(e){
         nN[y * width + x] = nN[y * width + x + width];
     }
 
-    postmessage( {nN}, [ nN.buffer] )
-}
+    postMessage( {nN}, [ nN.buffer] );
+};
