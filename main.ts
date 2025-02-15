@@ -3,11 +3,11 @@ canvas.width = window.innerWidth * devicePixelRatio;
 canvas.height = window.innerHeight * devicePixelRatio;
 const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
-const height = 128                     
-const width = 512                     
-const viscosity = 0.1            
+const height = 64                   
+const width = 128                    
+const viscosity = 0.01           
 const omega = 1/(3*viscosity+0.5)
-const u0 = 0.1                  
+const u0 = 0.2                
 const four9ths = 4./9.                
 const one9th   = 1./9.                
 const one36th  = 1./36.      
@@ -241,8 +241,8 @@ const handleBoundaries =() =>{
 }
 const draw = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for(let x = 1; x<width-1; x++){
-        for(let y = 1; y<height-10; y++){
+    for(let x = 2; x<width-2; x++){
+        for(let y = 2; y<height-10; y++){
             if (bar[y*width + x]){
                 ctx.fillStyle = "black"
                 ctx.fillRect(x*DRAW_SCALE_X, y*DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X)
@@ -250,6 +250,8 @@ const draw = () => {
             else{
                 const i = y*width + x
                 const c = Math.floor(255 * Math.sqrt(speed2[i]))
+                // const c = 5000*(uy[x+1+y*width] - uy[x-1+y*width] - ux[x+(y+1)*width] + ux[x+(y-1)*width])
+                // ctx.fillStyle = `rgb(${125+c}, ${125+c}, ${125+c})`
                 ctx.fillStyle = `rgb(${c}, ${c}, ${c})`
                 ctx.fillRect(x*DRAW_SCALE_X, y*DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X)
             }
@@ -282,16 +284,16 @@ time = newTime
 }
 
 initialize(u0)
-for(let j = 20; j<100; j++){
-    createWall(30, j)
+for(let j = 22; j<26; j++){
+    createWall(20, j)
 }
 
-// addEventListener("mousemove", (e)=>{
-//     const posX = Math.floor(e.pageX/DRAW_SCALE_X)
-//     const posY = Math.floor(e.pageY/DRAW_SCALE_X)
-//     createWall(posX, posY)
+addEventListener("click", (e)=>{
+    const posX = Math.floor(e.layerX/DRAW_SCALE_X)
+    const posY = Math.floor(e.layerY/DRAW_SCALE_X)
+    createWall(posX, posY)
 
-// })
+})
 
 
 console.log("Initialization took", performance.now()-time, "ms")
