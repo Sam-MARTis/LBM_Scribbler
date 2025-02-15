@@ -3,31 +3,37 @@ canvas.width = window.innerWidth * devicePixelRatio;
 canvas.height = window.innerHeight * devicePixelRatio;
 const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
-const height = 32                     
+const height = 128                     
 const width = 512                     
-const viscosity = 0.002               
-const omega = 1./(3*viscosity + 0.5)  
-const u0 = 0.1                        
+const viscosity = 0.1            
+const omega = 1/(3*viscosity+0.5)
+const u0 = 0.1                  
 const four9ths = 4./9.                
 const one9th   = 1./9.                
-const one36th  = 1./36.               
+const one36th  = 1./36.      
+const CALC_DRAW_RATIO = 10   
+const DRAW_SCALE_X = canvas.width/width
+let n0 = new Float32Array(height*width)
+let nN = new Float32Array(height*width)
+let nS = new Float32Array(height*width)
+let nE = new Float32Array(height*width)
+let nW = new Float32Array(height*width)
+let nNW= new Float32Array(height*width)
+let nNE= new Float32Array(height*width)
+let nSE= new Float32Array(height*width)
+let nSW= new Float32Array(height*width)
 
-let n0 = new Float64Array(height*width)
-let nN = new Float64Array(height*width)
-let nS = new Float64Array(height*width)
-let nE = new Float64Array(height*width)
-let nW = new Float64Array(height*width)
-let nNW= new Float64Array(height*width)
-let nNE= new Float64Array(height*width)
-let nSE= new Float64Array(height*width)
-let nSW= new Float64Array(height*width)
+let bar= new Float32Array(height*width)
 
-let bar= new Float64Array(height*width)
+let rho   = new Float32Array(height*width)
+let ux    = new Float32Array(height*width)
+let uy    = new Float32Array(height*width)
+let speed2= new Float32Array(height*width)
 
-let rho   = new Float64Array(height*width)
-let ux    = new Float64Array(height*width)
-let uy    = new Float64Array(height*width)
-let speed2= new Float64Array(height*width)
+const flatten2D = (i: number, j:number): number => {
+    return j*width + i
+}
+
 
 const stream = () => {
     
@@ -204,7 +210,7 @@ const collide = () => {
 //         xcoord = (xcoord+1) if xcoord<(width-1) else 0
 //         ycoord = ycoord if (xcoord != 0) else (ycoord + 1)
 
-const initialize = (xtop:number, ytop:number, yheight:number, u0:number = 0.1) => {
+const initialize = (u0:number = 0.1) => {
     let xcoord = 0
     let ycoord = 0
     
@@ -225,43 +231,47 @@ const initialize = (xtop:number, ytop:number, yheight:number, u0:number = 0.1) =
         ux[i]  = (nE[i] + nNE[i] + nSE[i] - nW[i] - nNW[i] - nSW[i]) * (1-(rho[i]-1)+((rho[i]-1)**2.))
         uy[i]  = (nN[i] + nNE[i] + nNW[i] - nS[i] - nSE[i] - nSW[i]) * (1-(rho[i]-1)+((rho[i]-1)**2.))
 
-        if (xcoord==xtop){
-            if (ycoord >= ytop){
-                if (ycoord < (ytop+yheight)){
-                    count += 1
-                    bar[ycoord*width + xcoord] = 1
-                }
-            }
-        }
 
         xcoord = (xcoord+1) < (width-1) ? xcoord+1 : 0
         ycoord = xcoord != 0 ? ycoord : ycoord + 1
     }
 }
+const handleBoundaries =() =>{
 
+}
 const draw = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for(let x = 0; x<width; x++){
-        for(let y = 0; y<height; y++){
+    for(let x = 1; x<width-1; x++){
+        for(let y = 1; y<height-10; y++){
             if (bar[y*width + x]){
                 ctx.fillStyle = "black"
-                ctx.fillRect(x+100, y+100, 1, 1)
+                ctx.fillRect(x*DRAW_SCALE_X, y*DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X)
             }
             else{
                 const i = y*width + x
                 const c = Math.floor(255 * Math.sqrt(speed2[i]))
                 ctx.fillStyle = `rgb(${c}, ${c}, ${c})`
-                ctx.fillRect(x+100, y+100, 10, 10)
+                ctx.fillRect(x*DRAW_SCALE_X, y*DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X)
             }
         }
     }
 }
 
+
+
+const createWall = (x: number, y: number) => {
+    bar[flatten2D(x, y)] = 1
+}
+
+
+
 let time = performance.now()
 const tick = () => {
+    for(let iter = 0; iter<CALC_DRAW_RATIO; iter++){
     stream()
     bounce()
     collide()
+    }
     draw()
     requestAnimationFrame(tick)
     const newTime = performance.now()
@@ -271,7 +281,19 @@ time = newTime
 
 }
 
-initialize(256, 10, 32)
+initialize(u0)
+for(let j = 20; j<100; j++){
+    createWall(30, j)
+}
+
+// addEventListener("mousemove", (e)=>{
+//     const posX = Math.floor(e.pageX/DRAW_SCALE_X)
+//     const posY = Math.floor(e.pageY/DRAW_SCALE_X)
+//     createWall(posX, posY)
+
+// })
+
+
 console.log("Initialization took", performance.now()-time, "ms")
 time = performance.now()
 tick()
