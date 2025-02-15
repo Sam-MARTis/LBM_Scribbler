@@ -6,7 +6,7 @@ const ctx = canvas.getContext("2d");
 const height = 80;
 const width = 200;
 const multiplier = 1.5;
-const viscosity = 0.01 * multiplier;
+const viscosity = 0.005 * multiplier;
 const omega = 1 / (3 * viscosity + 0.5);
 const u0 = 0.2 / multiplier;
 const four9ths = 4. / 9.;
@@ -28,6 +28,7 @@ let rho = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_P
 let ux = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
 let uy = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
 let speed2 = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let plotOption = "vx";
 const flatten2D = (i, j) => {
     return j * width + i;
 };
@@ -183,7 +184,6 @@ const createWall = (x, y) => {
 };
 const handleBoundaries = () => {
 };
-let plotOption = "curl";
 const offsetX = (canvas.width - width * DRAW_SCALE_X) / 2;
 const offsetY = (canvas.height - height * DRAW_SCALE_X) / 2;
 const draw = () => {
@@ -197,18 +197,18 @@ const draw = () => {
                 ctx.fillRect(offsetX + x * DRAW_SCALE_X, offsetY + y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
             }
             else {
-                let c;
+                let c = 0;
                 switch (plotOption) {
                     case "vx":
                         c = Math.floor(255 * rho[i]);
-                        ctx.fillStyle = `rgb(${c}, ${c}, ${c})`;
+                        ctx.fillStyle = `rgb(${0}, ${c}, ${c})`;
                         break;
                     case "vy":
-                        c = Math.floor(255 * ux[i]);
-                        ctx.fillStyle = `rgb(${c}, ${c}, ${c})`;
+                        c = 10 * Math.floor(255 * ux[i]);
+                        ctx.fillStyle = `rgb(${c}, ${c}, ${0})`;
                         break;
-                    case "velocity":
-                        c = Math.floor(255 * Math.sqrt(speed2[i]));
+                    case "speed":
+                        c = 5 * Math.floor(255 * Math.sqrt(speed2[i]));
                         ctx.fillStyle = `rgb(${c}, ${c}, ${c})`;
                         break;
                     case "curl":
@@ -217,7 +217,7 @@ const draw = () => {
                         break;
                 }
                 // const c = 3000 * (uy[x + 1 + y * width] - uy[x - 1 + y * width] - ux[x + (y + 1) * width] + ux[x + (y - 1) * width]);
-                ctx.fillStyle = `rgb(${Math.max(0, c)}, ${0}, ${Math.max(0, -c)})`;
+                // ctx.fillStyle = `rgb(${Math.max(0, c)}, ${0}, ${Math.max(0, -c)})`;
                 ctx.fillRect(offsetX + x * DRAW_SCALE_X, offsetY + y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
             }
         }
@@ -250,7 +250,9 @@ const tick = () => {
     time = newTime;
 };
 initialize(u0);
-for (let j = 22; j < 38; j++) {
+// const wallSize = Math.floor(height/5)
+const wallSize = 10;
+for (let j = Math.floor((height / 2) - wallSize / 2) - 1; j < (height / 2) + wallSize / 2; j++) {
     createWall(20, j);
 }
 console.log("Initialization took", performance.now() - time, "ms");
