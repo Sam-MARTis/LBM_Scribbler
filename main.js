@@ -178,30 +178,63 @@ const initialize = (u0 = 0.1) => {
         ycoord = xcoord != 0 ? ycoord : ycoord + 1;
     }
 };
+const createWall = (x, y) => {
+    bar[flatten2D(x, y)] = 1;
+};
 const handleBoundaries = () => {
 };
+let plotOption = "curl";
+const offsetX = (canvas.width - width * DRAW_SCALE_X) / 2;
+const offsetY = (canvas.height - height * DRAW_SCALE_X) / 2;
 const draw = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Calculate offsets to center the simulation on the canvas
     for (let x = 2; x < width - 2; x++) {
         for (let y = 2; y < height - 10; y++) {
-            if (bar[y * width + x]) {
+            const i = y * width + x;
+            if (bar[i]) {
                 ctx.fillStyle = "black";
-                ctx.fillRect(x * DRAW_SCALE_X, y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
+                ctx.fillRect(offsetX + x * DRAW_SCALE_X, offsetY + y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
             }
             else {
-                const i = y * width + x;
-                // const c = Math.floor(255 * Math.sqrt(speed2[i]))
-                const c = 3000 * (uy[x + 1 + y * width] - uy[x - 1 + y * width] - ux[x + (y + 1) * width] + ux[x + (y - 1) * width]);
-                ctx.fillStyle = `rgb(${+c}, ${0}, ${-c})`;
-                // ctx.fillStyle = `rgb(${c}, ${c}, ${c})`
-                ctx.fillRect(x * DRAW_SCALE_X, y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
+                let c;
+                switch (plotOption) {
+                    case "vx":
+                        c = Math.floor(255 * rho[i]);
+                        ctx.fillStyle = `rgb(${c}, ${c}, ${c})`;
+                        break;
+                    case "vy":
+                        c = Math.floor(255 * ux[i]);
+                        ctx.fillStyle = `rgb(${c}, ${c}, ${c})`;
+                        break;
+                    case "velocity":
+                        c = Math.floor(255 * Math.sqrt(speed2[i]));
+                        ctx.fillStyle = `rgb(${c}, ${c}, ${c})`;
+                        break;
+                    case "curl":
+                        c = 15 * Math.floor(255 * (uy[x + 1 + y * width] - uy[x - 1 + y * width] - ux[x + (y + 1) * width] + ux[x + (y - 1) * width]));
+                        ctx.fillStyle = `rgb(${Math.max(0, c)}, ${0}, ${Math.max(0, -c)})`;
+                        break;
+                }
+                // const c = 3000 * (uy[x + 1 + y * width] - uy[x - 1 + y * width] - ux[x + (y + 1) * width] + ux[x + (y - 1) * width]);
+                ctx.fillStyle = `rgb(${Math.max(0, c)}, ${0}, ${Math.max(0, -c)})`;
+                ctx.fillRect(offsetX + x * DRAW_SCALE_X, offsetY + y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
             }
         }
     }
 };
-const createWall = (x, y) => {
-    bar[flatten2D(x, y)] = 1;
-};
+// Adjust click position based on the canvas centering
+addEventListener("click", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    // Account for canvas' position on the screen, and the offset within the canvas
+    const posX = Math.floor((e.clientX - rect.left - offsetX) / DRAW_SCALE_X);
+    const posY = height + Math.floor((e.clientY - rect.top) / DRAW_SCALE_X);
+    console.log(e.clientX, e.clientY, rect.left, rect.top, offsetX, offsetY, posX, posY);
+    // Ensure the clicked position is within valid bounds
+    if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
+        createWall(posX, posY);
+    }
+});
 let time = performance.now();
 const tick = () => {
     for (let iter = 0; iter < CALC_DRAW_RATIO; iter++) {
@@ -212,19 +245,14 @@ const tick = () => {
     draw();
     requestAnimationFrame(tick);
     const newTime = performance.now();
-    console.log("Simulation took", newTime - time, "ms");
-    console.log("n0[4000]: ", n0[4000]);
+    // console.log("Simulation took", newTime-time, "ms")
+    // console.log("n0[4000]: ", n0[4000])
     time = newTime;
 };
 initialize(u0);
 for (let j = 22; j < 38; j++) {
     createWall(20, j);
 }
-addEventListener("click", (e) => {
-    const posX = Math.floor(e.layerX / DRAW_SCALE_X);
-    const posY = Math.floor(e.layerY / DRAW_SCALE_X);
-    createWall(posX, posY);
-});
 console.log("Initialization took", performance.now() - time, "ms");
 time = performance.now();
 tick();
