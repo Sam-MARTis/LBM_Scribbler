@@ -1,4 +1,13 @@
 "use strict";
+const worker_N = new Worker('worker_N.js');
+const worker_E = new Worker('worker_E.js');
+const worker_W = new Worker('worker_W.js');
+const worker_S = new Worker('worker_S.js');
+const worker_NE = new Worker('worker_NE.js');
+const worker_NW = new Worker('worker_NW.js');
+const worker_SE = new Worker('worker_SE.js');
+const worker_SW = new Worker('worker_SW.js');
+let sum = 0
 const canvas = document.getElementById("projectCanvas");
 canvas.width = window.innerWidth * devicePixelRatio;
 canvas.height = window.innerHeight * devicePixelRatio;
@@ -13,45 +22,67 @@ const one9th = 1. / 9.;
 const one36th = 1. / 36.;
 const CALC_DRAW_RATIO = 10;
 const DRAW_SCALE_X = canvas.width / width;
-let n0 = new Float32Array(height * width);
-let nN = new Float32Array(height * width);
-let nS = new Float32Array(height * width);
-let nE = new Float32Array(height * width);
-let nW = new Float32Array(height * width);
-let nNW = new Float32Array(height * width);
-let nNE = new Float32Array(height * width);
-let nSE = new Float32Array(height * width);
-let nSW = new Float32Array(height * width);
-let bar = new Float32Array(height * width);
-let rho = new Float32Array(height * width);
-let ux = new Float32Array(height * width);
-let uy = new Float32Array(height * width);
-let speed2 = new Float32Array(height * width);
+let n0 = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let nN = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let nS = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let nE = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let nW = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let nNW = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let nNE = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let nSE = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let nSW = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let bar = new Float32Array(height * width )
+let rho = new Float32Array(height * width )
+let ux = new Float32Array(height * width )
+let uy = new Float32Array(height * width )
+let speed2 = new Float32Array(height * width )
 const flatten2D = (i, j) => {
     return j * width + i;
 };
 const stream = () => {
-    // for x in range(0, width-1):
-    for (let x = 0; x < width - 1; x++) {
-        // for y in range(1, height-1):
-        for (let y = 1; y < height - 1; y++) {
-            nN[y * width + x] = nN[y * width + x + width];
-            nNW[y * width + x] = nNW[y * width + x + width + 1];
-            nW[y * width + x] = nW[y * width + x + 1];
-            nS[(height - y - 1) * width + x] = nS[(height - y - 1 - 1) * width + x];
-            nSW[(height - y - 1) * width + x] = nSW[(height - y - 1 - 1) * width + x + 1];
-            nE[y * width + (width - x - 1)] = nE[y * width + (width - (x + 1) - 1)];
-            nNE[y * width + (width - x - 1)] = nNE[y * width + width + (width - (x + 1) - 1)];
-            nSE[(height - y - 1) * width + (width - x - 1)] = nSE[(height - y - 1 - 1) * width +
-                (width - (x + 1) - 1)];
-        }
+    
+    worker_N.postMessage( {nN, width, height}, [ nN.buffer] )
+    worker_S.postMessage( {nS, width, height}, [ nS.buffer] )
+    worker_E.postMessage( {nE, width, height}, [ nE.buffer] )
+    worker_W.postMessage( {nW, width, height}, [ nW.buffer] )
+    worker_NE.postMessage( {nNE, width, height}, [ nNE.buffer] )
+    worker_NW.postMessage( {nNW, width, height}, [ nNW.buffer] )
+    worker_SE.postMessage( {nSE, width, height}, [ nSE.buffer] )
+    worker_SW.postMessage( {nSW, width, height}, [ nSW.buffer] )
+
+    worker_N.onmessage = function(e){
+        nN = new Float32Array(e.data.nN)
+        sum = sum+1
     }
-    const x = width;
-    // for y in range(1, height-1):
-    for (let y = 1; y < height - 1; y++) {
-        nN[y * width + x] = nN[y * width + x + width];
-        nS[(height - y - 1) * width + x] = nS[(height - y - 1 - 1) * width + x];
+    worker_E.onmessage = function(e){
+        nE = new Float32Array(e.data.nNE)
+        sum = sum+1
     }
+    worker_W.onmessage = function(e){
+        nW = new Float32Array(e.data.nW)
+        sum = sum+1
+    }
+    worker_S.onmessage = function(e){
+        nS = new Float32Array(e.data.nS)
+        sum = sum+1
+    }
+    worker_NE.onmessage = function(e){
+        nNE = new Float32Array(e.data.nNE)
+        sum = sum+1
+    }
+    worker_NW.onmessage = function(e){
+        nNW = new Float32Array(e.data.nNW)
+        sum = sum+1
+    }
+    worker_SE.onmessage = function(e){
+        nSE = new Float32Array(e.data.nSE)
+        sum = sum+1
+    }
+    worker_SW.onmessage = function(e){
+        nSE = new Float32Array(e.data.nSE)
+        sum = sum+1
+    }
+
 };
 const bounce = () => {
     // for x in range(2, width-2):
@@ -100,16 +131,6 @@ const collide = () => {
                     ux[i] = (nE[i] + nNE[i] + nSE[i] - nW[i] - nNW[i] - nSW[i]) * (1 - (rho[i] - 1) + ((rho[i] - 1) ** 2.));
                     uy[i] = (nN[i] + nNE[i] + nNW[i] - nS[i] - nSE[i] - nSW[i]) * (1 - (rho[i] - 1) + ((rho[i] - 1) ** 2.));
                 }
-                // one9th_rho = one9th * rho[i]
-                // one36th_rho = one36th * rho[i]
-                // vx3 = 3 * ux[i]
-                // vy3 = 3 * uy[i]
-                // vx2 = ux[i] * ux[i]
-                // vy2 = uy[i] * uy[i]
-                // vxvy2 = 2 * ux[i] * uy[i]
-                // v2 = vx2 + vy2
-                // speed2[i] = v2
-                // v215 = 1.5 * v2
                 const one9th_rho = one9th * rho[i];
                 const one36th_rho = one36th * rho[i];
                 const vx3 = 3 * ux[i];
@@ -133,30 +154,7 @@ const collide = () => {
         }
     }
 };
-// def initialize(xtop, ytop, yheight, u0=u0):
-//     xcoord = 0
-//     ycoord = 0
-//     count = 0
-//     for i in range(height*width):
-//         n0[i] = four9ths* (1 - 1.5*(u0**2.))
-//         nN[i] = one9th  * (1 - 1.5*(u0**2.))
-//         nS[i] = one9th  * (1 - 1.5*(u0**2.))
-//         nE[i] = one9th  * (1 + 3*u0 + 4.5*(u0**2.) - 1.5*(u0**2.))
-//         nW[i] = one9th  * (1 - 3*u0 + 4.5*(u0**2.) - 1.5*(u0**2.))
-//         nNE[i]= one36th * (1 + 3*u0 + 4.5*(u0**2.) - 1.5*(u0**2.))
-//         nSE[i]= one36th * (1 + 3*u0 + 4.5*(u0**2.) - 1.5*(u0**2.))
-//         nNW[i]= one36th * (1 - 3*u0 + 4.5*(u0**2.) - 1.5*(u0**2.))
-//         nSW[i]= one36th * (1 - 3*u0 + 4.5*(u0**2.) - 1.5*(u0**2.))
-//         rho[i] =  n0[i] + nN[i] + nS[i] + nE[i] + nW[i] + nNE[i] + nSE[i] + nNW[i] + nSW[i]
-//         ux[i]  = (nE[i] + nNE[i] + nSE[i] - nW[i] - nNW[i] - nSW[i]) * (1-(rho[i]-1)+((rho[i]-1)**2.))
-//         uy[i]  = (nN[i] + nNE[i] + nNW[i] - nS[i] - nSE[i] - nSW[i]) * (1-(rho[i]-1)+((rho[i]-1)**2.))
-//         if (xcoord==xtop):
-//             if (ycoord >= ytop):
-//                 if (ycoord < (ytop+yheight)):
-//                     count += 1
-//                     bar[ycoord*width + xcoord] = 1
-//         xcoord = (xcoord+1) if xcoord<(width-1) else 0
-//         ycoord = ycoord if (xcoord != 0) else (ycoord + 1)
+
 const initialize = (u0 = 0.1) => {
     let xcoord = 0;
     let ycoord = 0;
@@ -205,7 +203,11 @@ const createWall = (x, y) => {
 let time = performance.now();
 const tick = () => {
     for (let iter = 0; iter < CALC_DRAW_RATIO; iter++) {
+        sum = 0
         stream();
+        while(sum< 8){
+        }
+        sum = 0
         bounce();
         collide();
     }
