@@ -3,16 +3,17 @@ const canvas = document.getElementById("projectCanvas");
 canvas.width = window.innerWidth * devicePixelRatio;
 canvas.height = window.innerHeight * devicePixelRatio;
 const ctx = canvas.getContext("2d");
-const height = 64;
-const width = 128;
-const viscosity = 0.01;
+const height = 80;
+const width = 300;
+const multiplier = 1.3;
+const viscosity = 0.01 * multiplier;
 const omega = 1 / (3 * viscosity + 0.5);
-const u0 = 0.2;
+const u0 = 0.1 / multiplier;
 const four9ths = 4. / 9.;
 const one9th = 1. / 9.;
 const one36th = 1. / 36.;
-const CALC_DRAW_RATIO = 10;
-const DRAW_SCALE_X = canvas.width / width;
+const CALC_DRAW_RATIO = 15;
+const DRAW_SCALE_X = 0.7 * canvas.width / width;
 let n0 = new Float32Array(height * width);
 let nN = new Float32Array(height * width);
 let nS = new Float32Array(height * width);
@@ -190,10 +191,10 @@ const draw = () => {
             }
             else {
                 const i = y * width + x;
-                const c = Math.floor(255 * Math.sqrt(speed2[i]));
-                // const c = 5000*(uy[x+1+y*width] - uy[x-1+y*width] - ux[x+(y+1)*width] + ux[x+(y-1)*width])
-                // ctx.fillStyle = `rgb(${125+c}, ${125+c}, ${125+c})`
-                ctx.fillStyle = `rgb(${c}, ${c}, ${c})`;
+                // const c = Math.floor(255 * Math.sqrt(speed2[i]))
+                const c = 5000 * (uy[x + 1 + y * width] - uy[x - 1 + y * width] - ux[x + (y + 1) * width] + ux[x + (y - 1) * width]);
+                ctx.fillStyle = `rgb(${+c}, ${0}, ${-c})`;
+                // ctx.fillStyle = `rgb(${c}, ${c}, ${c})`
                 ctx.fillRect(x * DRAW_SCALE_X, y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
             }
         }
@@ -217,7 +218,7 @@ const tick = () => {
     time = newTime;
 };
 initialize(u0);
-for (let j = 22; j < 26; j++) {
+for (let j = 22; j < 38; j++) {
     createWall(20, j);
 }
 addEventListener("click", (e) => {
