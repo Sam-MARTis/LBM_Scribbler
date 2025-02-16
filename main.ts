@@ -315,7 +315,7 @@ const draw = () => {
                         break;
                     case "vy":
                         c = 10 * Math.floor(255 * uy[i]);
-                        ctx.fillStyle = `rgb(${c}, ${c}, ${0})`;
+                        ctx.fillStyle = `rgb(${125+c}, ${125+c}, ${0})`;
                         break;
                     case "speed":
                         c = 5 * Math.floor(255 * Math.sqrt(speed2[i]));
@@ -383,13 +383,14 @@ initialize(u0)
 // }
 
 // creat block
-const Block_width = 15;
-const Block_Height = 15;
-// for(let i = 20; i<20+Block_width; i++){
-//     for(let j = Math.floor((height/2)-Block_Height/2)-1; j<(height/2)+Block_Height/2; j++){
-//         createWall(i,j)
-//     }
-// }
+const drawBlock =(Block_Height:number,Block_width:number, pos_X_block:number, pos_Y_block:number):void =>{
+    for(let i = pos_X_block; i<pos_X_block+Block_width; i++){
+        for(let j = Math.floor(Math.abs((pos_Y_block)-Block_Height/2))-1; j<(pos_Y_block)+Block_Height/2; j++){
+            createWall(i,j);
+        }
+    }
+}
+drawBlock(5,15,25,25)
 
 //creat Circle
 const drawCircleBarrier = (radius: number, pos_X: number): void => {
@@ -423,17 +424,19 @@ const drawramp = (ramp_H:number, pos_X_ramp:number, pos_Y_ramp:number): void =>{
 const drawinvertedramp = (ramp_H:number, pos_X_ramp:number, pos_Y_ramp:number): void =>{
     for (let i =ramp_H+ pos_X_ramp ; i >= pos_X_ramp; i--) {
         for (let j = ramp_H -i + pos_Y_ramp +pos_X_ramp; j > pos_Y_ramp; j--) {
-            createWall(i, j);
+            removeWall(i, j);
         }
     }
     for(let i= pos_X_ramp; i< pos_X_ramp+ ramp_H; i++){
         for(let j=pos_Y_ramp-ramp_H + (i-pos_X_ramp); j<=pos_Y_ramp; j++){
-            createWall(i,j)
+            removeWall(i,j)
         }
     }
 }
 
-drawinvertedramp(10,25,40)
+// drawCircleBarrier(10,35)
+// drawinvertedramp(8,25,50)
+
 console.log()
 // drawCircleBarrier(7,90)"Initialization took", performance.now()-time, "ms")
 time = performance.now()
