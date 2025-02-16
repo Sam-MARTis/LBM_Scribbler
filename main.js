@@ -12,31 +12,62 @@ const canvas = document.getElementById("projectCanvas");
 canvas.width = window.innerWidth * devicePixelRatio;
 canvas.height = window.innerHeight * devicePixelRatio;
 const ctx = canvas.getContext("2d");
-const height = 60;
-const width = 100;
+const height = 100;
+const width = 200;
 const multiplier = 1.5;
-const viscosity = 0.01 * multiplier;
-const omega = 1 / (3 * viscosity + 0.5);
-const u0 = 0.1 / multiplier;
-const four9ths = 4 / 9;
-const one9th = 1 / 9;
-const one36th = 1 / 36;
-const CALC_DRAW_RATIO = 10;
-const DRAW_SCALE_X = (0.7 * canvas.width) / width;
-let n0 = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT)).fill(0);
-let nN = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT)).fill(0);
-let nS = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT)).fill(0);
-let nE = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT)).fill(0);
-let nW = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT)).fill(0);
-let nNW = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT)).fill(0);
-let nNE = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT)).fill(0);
-let nSE = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT)).fill(0);
-let nSW = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT)).fill(0);
-let bar = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT)).fill(0);
-let rho = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT)).fill(0);
-let ux = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT)).fill(0);
-let uy = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT)).fill(0);
-let speed2 = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT)).fill(0);
+let viscosity = 0.005 * multiplier;
+let omega = 1 / (3 * viscosity + 0.5);
+const u0 = 0.2 / multiplier;
+const four9ths = 4. / 9.;
+const one9th = 1. / 9.;
+const one36th = 1. / 36.;
+const CALC_DRAW_RATIO = 15;
+const DRAW_SCALE_X = 0.9 * canvas.width / width;
+let n0 = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let nN = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let nS = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let nE = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let nW = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let nNW = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let nNE = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let nSE = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let nSW = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let bar = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let rho = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let ux = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let uy = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let speed2 = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let plotOption = "curl";
+const plotSelect = document.getElementById("plotOptions");
+// Add an event listener to detect changes in the dropdown
+plotSelect.addEventListener("change", () => {
+    // Update the PlotOption variable to the selected value
+    plotOption = plotSelect.value;
+});
+let paused = false;
+let animVal = null;
+const but1 = document.getElementById("but1");
+but1.addEventListener("click", () => {
+    paused = !paused; // Toggle the paused state
+    if (!paused) {
+        // Resume the animation
+        tick();
+    }
+    else {
+        // Pause the animation by canceling the next frame
+        if (animVal !== null) {
+            cancelAnimationFrame(animVal);
+        }
+    }
+});
+const viscositySlider = document.getElementById("viscositySlider");
+// Add an event listener to detect changes in the slider
+viscositySlider.addEventListener("input", () => {
+    // Update the viscosity variable to the slider's current value
+    viscosity = parseFloat(viscositySlider.value) * multiplier;
+    omega = 1 / (3 * viscosity + 0.5);
+    // console.log(`Viscosity updated to: ${viscosity}`);
+});
 const flatten2D = (i, j) => {
     return j * width + i;
 };
@@ -240,87 +271,90 @@ const initialize = (u0 = 0.1) => {
         ycoord = xcoord != 0 ? ycoord : ycoord + 1;
     }
 };
-const handleBoundaries = () => { };
+const createWall = (x, y) => {
+    bar[flatten2D(x, y)] = 1;
+};
+const handleBoundaries = () => {
+};
+const offsetX = (canvas.width - width * DRAW_SCALE_X) / 2;
+const offsetY = (canvas.height - height * DRAW_SCALE_X) / 2;
 const draw = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Calculate offsets to center the simulation on the canvas
     for (let x = 2; x < width - 2; x++) {
         for (let y = 2; y < height - 10; y++) {
-            if (bar[y * width + x]) {
+            const i = y * width + x;
+            if (bar[i]) {
                 ctx.fillStyle = "black";
-                ctx.fillRect(x * DRAW_SCALE_X, y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
+                ctx.fillRect(offsetX + x * DRAW_SCALE_X, offsetY + y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
             }
             else {
-                const i = y * width + x;
-                // const c = Math.floor(255 * Math.sqrt(speed2[i]))
-                const c = 3000 *
-                    (uy[x + 1 + y * width] -
-                        uy[x - 1 + y * width] -
-                        ux[x + (y + 1) * width] +
-                        ux[x + (y - 1) * width]);
-                ctx.fillStyle = `rgb(${+c}, ${0}, ${-c})`;
-                // ctx.fillStyle = `rgb(${c}, ${c}, ${c})`
-                ctx.fillRect(x * DRAW_SCALE_X, y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
+                let c = 0;
+                switch (plotOption) {
+                    case "rho":
+                        c = 1 * Math.floor(200 * (rho[i] ** 6));
+                        ctx.fillStyle = `rgb(${c}, ${c}, ${c})`;
+                        break;
+                    case "vx":
+                        c = 10 * Math.floor(255 * ux[i]);
+                        ctx.fillStyle = `rgb(${0}, ${c}, ${c})`;
+                        break;
+                    case "vy":
+                        c = 10 * Math.floor(255 * uy[i]);
+                        ctx.fillStyle = `rgb(${c}, ${c}, ${0})`;
+                        break;
+                    case "speed":
+                        c = 5 * Math.floor(255 * Math.sqrt(speed2[i]));
+                        ctx.fillStyle = `rgb(${c}, ${c}, ${c})`;
+                        break;
+                    case "curl":
+                        c = 15 * Math.floor(255 * (uy[x + 1 + y * width] - uy[x - 1 + y * width] - ux[x + (y + 1) * width] + ux[x + (y - 1) * width]));
+                        ctx.fillStyle = `rgb(${Math.max(0, c)}, ${0}, ${Math.max(0, -c)})`;
+                        break;
+                }
+                // const c = 3000 * (uy[x + 1 + y * width] - uy[x - 1 + y * width] - ux[x + (y + 1) * width] + ux[x + (y - 1) * width]);
+                // ctx.fillStyle = `rgb(${Math.max(0, c)}, ${0}, ${Math.max(0, -c)})`;
+                ctx.fillRect(offsetX + x * DRAW_SCALE_X, offsetY + y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
             }
         }
     }
 };
-const createWall = (x, y) => {
-    bar[flatten2D(x, y)] = 1;
-};
+// Adjust click position based on the canvas centering
+addEventListener("click", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    // Account for canvas' position on the screen, and the offset within the canvas
+    const posX = Math.floor((e.clientX - rect.left - offsetX) / DRAW_SCALE_X);
+    const posY = height + Math.floor((e.clientY - rect.top) / DRAW_SCALE_X);
+    console.log(e.clientX, e.clientY, rect.left, rect.top, offsetX, offsetY, posX, posY);
+    // Ensure the clicked position is within valid bounds
+    if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
+        // createWall(posX, posY);
+    }
+});
 let time = performance.now();
 let iterationCounter = 0; // Counter to track iterations
 const tick = () => {
-    // for (let iter = 0; iter < CALC_DRAW_RATIO; iter++) {
-    // oldStream();
-    processWithWorkers()
-        .then(() => {
+    if (paused) {
+        return;
+    }
+    for (let iter = 0; iter < CALC_DRAW_RATIO; iter++) {
+        stream();
         bounce();
         collide();
-        // Increment the iteration counter
-        iterationCounter++;
-        // Only draw once when the counter reaches CALC_DRAW_RATIO
-        if (iterationCounter >= CALC_DRAW_RATIO) {
-            draw();
-            iterationCounter = 0; // Reset the counter
-        }
-    })
-        .then(() => {
-        requestAnimationFrame(tick);
-    });
-    // streamThis().then(() => {
-    // bounce();
-    // collide();
-    // });
+    }
+    draw();
+    animVal = requestAnimationFrame(tick);
     const newTime = performance.now();
-    console.log("Simulation took", newTime - time, "ms");
-    console.log("n0[4000]: ", n0[4000]);
+    // console.log("Simulation took", newTime-time, "ms")
+    // console.log("n0[4000]: ", n0[4000])
     time = newTime;
 };
 initialize(u0);
-// console.log("nN value after initialization: ", nN)
-// stream();
-// console.log("nN value after stream: ", nN)
-// stream().then(() => {bounce(); collide(); });
-// collide();
-console.log("Starting Stream");
-console.log("Value of n0[sample] before stream: ", n0[Math.floor(width * height / 2)]);
-// stream();
-console.log("Stream complete");
-console.log("Value of n0[sample]: ", n0[Math.floor(width * height / 2)]);
-console.log("testing");
-for (let j = 22; j < 38; j++) {
+// const wallSize = Math.floor(height/5)
+const wallSize = 10;
+for (let j = Math.floor((height / 2) - wallSize / 2) - 1; j < (height / 2) + wallSize / 2; j++) {
     createWall(20, j);
 }
-addEventListener("click", (e) => {
-    // const posX = Math.floor(e.layerX / DRAW_SCALE_X);
-    // const posY = Math.floor(e.layerY / DRAW_SCALE_X);
-    // createWall(posX, posY);
-    bounce();
-    collide();
-    // stream()
-    console.log(n0);
-    console.log("u[sample]: ", nN[Math.floor(width * Math.floor(height / 2))]);
-});
 console.log("Initialization took", performance.now() - time, "ms");
 time = performance.now();
 tick();
