@@ -307,14 +307,23 @@ const Block_Height = 15;
 //     }
 // }
 //creat Circle
-const radius = 10;
-const pos_X = 25;
-const pos_Y = Math.floor(height / 2);
-for (let i = 0; i < width; i++) {
-    for (let j = 0; j < height; j++) {
-        if ((D_Square(i, j, pos_X, pos_Y)) <= radius ** 2 - 0.001) {
-            createWall(i, j);
+const drawCircleBarrier = (radius, pos_X) => {
+    const pos_Y = Math.floor(height / 2);
+    for (let i = 0; i < width; i++) {
+        for (let j = 0; j < height; j++) {
+            if ((D_Square(i, j, pos_X, pos_Y)) <= radius ** 2 - 0.001) {
+                createWall(i, j);
+            }
         }
+    }
+};
+// drawCircleBarrier(5, 50)
+// drawCircleBarrier(7,90)
+// creat triangle but ..
+let g = 0;
+for (let j = height / 4; j < height / 2; j++) {
+    for (let i = j; i < width / 4; i++) {
+        createWall(i, j);
     }
 }
 console.log("Initialization took", performance.now() - time, "ms");
