@@ -22,7 +22,7 @@ const four9ths = 4. / 9.;
 const one9th = 1. / 9.;
 const one36th = 1. / 36.;
 const CALC_DRAW_RATIO = 15;
-const DRAW_SCALE_X = 0.9 * canvas.width / width;
+const DRAW_SCALE_X = 1 * canvas.width / width;
 let n0 = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
 let nN = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
 let nS = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
@@ -32,7 +32,7 @@ let nNW = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_P
 let nNE = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
 let nSE = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
 let nSW = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
-let bar = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+let bar = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT)).fill(0);
 let rho = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
 let ux = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
 let uy = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
@@ -149,6 +149,29 @@ const processWithWorkers = () => {
         }
     }));
 };
+const stream = () => {
+    // for x in range(0, width-1):
+    for (let x = 0; x < width - 1; x++) {
+        // for y in range(1, height-1):
+        for (let y = 1; y < height - 1; y++) {
+            nN[y * width + x] = nN[y * width + x + width];
+            nNW[y * width + x] = nNW[y * width + x + width + 1];
+            nW[y * width + x] = nW[y * width + x + 1];
+            nS[(height - y - 1) * width + x] = nS[(height - y - 1 - 1) * width + x];
+            nSW[(height - y - 1) * width + x] = nSW[(height - y - 1 - 1) * width + x + 1];
+            nE[y * width + (width - x - 1)] = nE[y * width + (width - (x + 1) - 1)];
+            nNE[y * width + (width - x - 1)] = nNE[y * width + width + (width - (x + 1) - 1)];
+            nSE[(height - y - 1) * width + (width - x - 1)] = nSE[(height - y - 1 - 1) * width +
+                (width - (x + 1) - 1)];
+        }
+    }
+    const x = width;
+    // for y in range(1, height-1):
+    for (let y = 1; y < height - 1; y++) {
+        nN[y * width + x] = nN[y * width + x + width];
+        nS[(height - y - 1) * width + x] = nS[(height - y - 1 - 1) * width + x];
+    }
+};
 // processWithWorkers();
 // const stream = async (): Promise<void> => {
 //   // work1.postMessage({array: nN, arrayType: "nN", width: width, height: height}, [nN.buffer]);
@@ -250,24 +273,19 @@ const initialize = (u0 = 0.1) => {
     let xcoord = 0;
     let ycoord = 0;
     for (let i = 0; i < height * width; i++) {
-        n0[i] = four9ths * (1 - 1.5 * u0 ** 2);
-        nN[i] = one9th * (1 - 1.5 * u0 ** 2);
-        nS[i] = one9th * (1 - 1.5 * u0 ** 2);
-        nE[i] = one9th * (1 + 3 * u0 + 4.5 * u0 ** 2 - 1.5 * u0 ** 2);
-        nW[i] = one9th * (1 - 3 * u0 + 4.5 * u0 ** 2 - 1.5 * u0 ** 2);
-        nNE[i] = one36th * (1 + 3 * u0 + 4.5 * u0 ** 2 - 1.5 * u0 ** 2);
-        nSE[i] = one36th * (1 + 3 * u0 + 4.5 * u0 ** 2 - 1.5 * u0 ** 2);
-        nNW[i] = one36th * (1 - 3 * u0 + 4.5 * u0 ** 2 - 1.5 * u0 ** 2);
-        nSW[i] = one36th * (1 - 3 * u0 + 4.5 * u0 ** 2 - 1.5 * u0 ** 2);
-        rho[i] =
-            n0[i] + nN[i] + nS[i] + nE[i] + nW[i] + nNE[i] + nSE[i] + nNW[i] + nSW[i];
-        ux[i] =
-            (nE[i] + nNE[i] + nSE[i] - nW[i] - nNW[i] - nSW[i]) *
-                (1 - (rho[i] - 1) + (rho[i] - 1) ** 2);
-        uy[i] =
-            (nN[i] + nNE[i] + nNW[i] - nS[i] - nSE[i] - nSW[i]) *
-                (1 - (rho[i] - 1) + (rho[i] - 1) ** 2);
-        xcoord = xcoord + 1 < width - 1 ? xcoord + 1 : 0;
+        n0[i] = four9ths * (1 - 1.5 * (u0 ** 2.));
+        nN[i] = one9th * (1 - 1.5 * (u0 ** 2.));
+        nS[i] = one9th * (1 - 1.5 * (u0 ** 2.));
+        nE[i] = one9th * (1 + 3 * u0 + 4.5 * (u0 ** 2.) - 1.5 * (u0 ** 2.));
+        nW[i] = one9th * (1 - 3 * u0 + 4.5 * (u0 ** 2.) - 1.5 * (u0 ** 2.));
+        nNE[i] = one36th * (1 + 3 * u0 + 4.5 * (u0 ** 2.) - 1.5 * (u0 ** 2.));
+        nSE[i] = one36th * (1 + 3 * u0 + 4.5 * (u0 ** 2.) - 1.5 * (u0 ** 2.));
+        nNW[i] = one36th * (1 - 3 * u0 + 4.5 * (u0 ** 2.) - 1.5 * (u0 ** 2.));
+        nSW[i] = one36th * (1 - 3 * u0 + 4.5 * (u0 ** 2.) - 1.5 * (u0 ** 2.));
+        rho[i] = n0[i] + nN[i] + nS[i] + nE[i] + nW[i] + nNE[i] + nSE[i] + nNW[i] + nSW[i];
+        ux[i] = (nE[i] + nNE[i] + nSE[i] - nW[i] - nNW[i] - nSW[i]) * (1 - (rho[i] - 1) + ((rho[i] - 1) ** 2.));
+        uy[i] = (nN[i] + nNE[i] + nNW[i] - nS[i] - nSE[i] - nSW[i]) * (1 - (rho[i] - 1) + ((rho[i] - 1) ** 2.));
+        xcoord = (xcoord + 1) < (width - 1) ? xcoord + 1 : 0;
         ycoord = xcoord != 0 ? ycoord : ycoord + 1;
     }
 };
@@ -280,7 +298,6 @@ const offsetX = (canvas.width - width * DRAW_SCALE_X) / 2;
 const offsetY = (canvas.height - height * DRAW_SCALE_X) / 2;
 const draw = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // Calculate offsets to center the simulation on the canvas
     for (let x = 2; x < width - 2; x++) {
         for (let y = 2; y < height - 10; y++) {
             const i = y * width + x;
@@ -312,24 +329,44 @@ const draw = () => {
                         ctx.fillStyle = `rgb(${Math.max(0, c)}, ${0}, ${Math.max(0, -c)})`;
                         break;
                 }
-                // const c = 3000 * (uy[x + 1 + y * width] - uy[x - 1 + y * width] - ux[x + (y + 1) * width] + ux[x + (y - 1) * width]);
-                // ctx.fillStyle = `rgb(${Math.max(0, c)}, ${0}, ${Math.max(0, -c)})`;
                 ctx.fillRect(offsetX + x * DRAW_SCALE_X, offsetY + y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
             }
         }
     }
 };
-// Adjust click position based on the canvas centering
-addEventListener("click", (e) => {
+let isDrawing = false; // Tracks whether the user is currently drawing
+const getMousePosition = (e) => {
     const rect = canvas.getBoundingClientRect();
-    // Account for canvas' position on the screen, and the offset within the canvas
     const posX = Math.floor((e.clientX - rect.left - offsetX) / DRAW_SCALE_X);
-    const posY = height + Math.floor((e.clientY - rect.top) / DRAW_SCALE_X);
-    console.log(e.clientX, e.clientY, rect.left, rect.top, offsetX, offsetY, posX, posY);
+    const posY = Math.floor((e.clientY - rect.top - offsetY) / DRAW_SCALE_X);
+    return { posX, posY };
+};
+// Mouse down event to start drawing
+canvas.addEventListener("mousedown", (e) => {
+    isDrawing = true;
+    const { posX, posY } = getMousePosition(e);
     // Ensure the clicked position is within valid bounds
     if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
-        // createWall(posX, posY);
+        createWall(posX, posY);
     }
+});
+// Mouse move event to draw while dragging
+canvas.addEventListener("mousemove", (e) => {
+    if (!isDrawing)
+        return; // Only draw when the mouse is down
+    const { posX, posY } = getMousePosition(e);
+    // Ensure the current position is within valid bounds
+    if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
+        createWall(posX, posY);
+    }
+});
+// Mouse up event to stop drawing
+canvas.addEventListener("mouseup", () => {
+    isDrawing = false;
+});
+// Optional: Handle mouse leaving the canvas to stop drawing
+canvas.addEventListener("mouseleave", () => {
+    isDrawing = false;
 });
 let time = performance.now();
 let iterationCounter = 0; // Counter to track iterations

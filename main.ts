@@ -13,7 +13,7 @@ const four9ths = 4./9.
 const one9th   = 1./9.                
 const one36th  = 1./36.      
 const CALC_DRAW_RATIO = 15   
-const DRAW_SCALE_X = 0.9*canvas.width/width
+const DRAW_SCALE_X = 1*canvas.width/width
 let n0 = new Float32Array(new ArrayBuffer(height*width*Float32Array.BYTES_PER_ELEMENT))
 let nN = new Float32Array(new ArrayBuffer(height*width*Float32Array.BYTES_PER_ELEMENT))
 let nS = new Float32Array(new ArrayBuffer(height*width*Float32Array.BYTES_PER_ELEMENT))
@@ -172,6 +172,45 @@ const processWithWorkers = (): Promise<void> => {
   });
 };
 
+
+const stream = () => {
+    
+    
+    // for x in range(0, width-1):
+    for(let x = 0; x<width-1; x++){
+        // for y in range(1, height-1):
+        for(let y = 1; y<height-1; y++){
+            
+            nN[y*width + x] = nN[y*width + x + width]
+            
+            nNW[y*width + x] = nNW[y*width + x + width + 1]
+            
+            nW[y*width + x] = nW[y*width + x + 1]
+            
+            nS[(height-y-1)*width + x] = nS[(height-y-1-1)*width + x]
+            
+            nSW[(height-y-1)*width + x] = nSW[(height-y-1-1)*width + x + 1]
+            
+            nE[y*width + (width-x-1)] = nE[y*width + (width-(x+1)-1)]
+            
+            nNE[y*width + (width-x-1)] = nNE[y*width + width + (width-(x+1)-1)]
+            
+            nSE[(height-y-1)*width + (width-x-1)] = nSE[(height-y-1-1)*width +
+                                                        (width-(x+1)-1)]  
+            }
+        }
+            
+    
+    const x = width;
+    // for y in range(1, height-1):
+    for(let y = 1; y<height-1; y++){
+    
+        
+        nN[y*width + x] = nN[y*width + x + width]
+        
+        nS[(height-y-1)*width + x] = nS[(height-y-1-1)*width + x]
+    }
+}
 // processWithWorkers();
 
 // const stream = async (): Promise<void> => {
@@ -318,69 +357,88 @@ const handleBoundaries =() =>{
 const offsetX = (canvas.width - width * DRAW_SCALE_X) / 2;
 const offsetY = (canvas.height - height * DRAW_SCALE_X) / 2;
 const draw = () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Calculate offsets to center the simulation on the canvas
+  for (let x = 2; x < width - 2; x++) {
+      for (let y = 2; y < height - 10; y++) {
+          const i = y * width + x;
 
-    for (let x = 2; x < width - 2; x++) {
-        for (let y = 2; y < height - 10; y++) {
-            const i = y * width + x;
+          if (bar[i]) {
+              ctx.fillStyle = "black";
+              ctx.fillRect(offsetX + x * DRAW_SCALE_X, offsetY + y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
+          } else {
+              let c = 0;
+              switch (plotOption) {
+                  case "rho":
+                      c = 1 * Math.floor(200 * (rho[i] ** 6));
+                      ctx.fillStyle = `rgb(${c}, ${c}, ${c})`;
+                      break;
+                  case "vx":
+                      c = 10 * Math.floor(255 * ux[i]);
+                      ctx.fillStyle = `rgb(${0}, ${c}, ${c})`;
+                      break;
+                  case "vy":
+                      c = 10 * Math.floor(255 * uy[i]);
+                      ctx.fillStyle = `rgb(${c}, ${c}, ${0})`;
+                      break;
+                  case "speed":
+                      c = 5 * Math.floor(255 * Math.sqrt(speed2[i]));
+                      ctx.fillStyle = `rgb(${c}, ${c}, ${c})`;
+                      break;
+                  case "curl":
+                      c = 15 * Math.floor(255 * (uy[x + 1 + y * width] - uy[x - 1 + y * width] - ux[x + (y + 1) * width] + ux[x + (y - 1) * width]));
+                      ctx.fillStyle = `rgb(${Math.max(0, c)}, ${0}, ${Math.max(0, -c)})`;
+                      break;
+              }
+              ctx.fillRect(offsetX + x * DRAW_SCALE_X, offsetY + y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
+          }
+      }
+  }
+};
+let isDrawing = false; 
 
-            if (bar[i]) {
-                ctx.fillStyle = "black";
-                ctx.fillRect(offsetX + x * DRAW_SCALE_X, offsetY + y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
-            } else {
-                let c = 0;
-                switch (plotOption) {
-                    case "rho":
-                        c = 1*Math.floor(200 * (rho[i]**6));
-                        ctx.fillStyle = `rgb(${c}, ${c}, ${c})`;
-                        break;
-                    case "vx":
-                        c = 10*Math.floor(255 * ux[i]);
-                        ctx.fillStyle = `rgb(${0}, ${c}, ${c})`;
-                        break;
-                    case "vy":
-                        c = 10*Math.floor(255 * uy[i]);
-                        ctx.fillStyle = `rgb(${c}, ${c}, ${0})`;
-                        break;
-                    case "speed":
-                        c = 5*Math.floor(255 * Math.sqrt(speed2[i]));
-                        ctx.fillStyle = `rgb(${c}, ${c}, ${c})`;
-                        break;
-                    case "curl":
-                        c = 15*Math.floor(255 * (uy[x + 1 + y * width] - uy[x - 1 + y * width] - ux[x + (y + 1) * width] + ux[x + (y - 1) * width]));
-                        ctx.fillStyle = `rgb(${Math.max(0, c)}, ${0}, ${Math.max(0, -c)})`;
-                        break;
-                    
-                }
-                // const c = 3000 * (uy[x + 1 + y * width] - uy[x - 1 + y * width] - ux[x + (y + 1) * width] + ux[x + (y - 1) * width]);
-                // ctx.fillStyle = `rgb(${Math.max(0, c)}, ${0}, ${Math.max(0, -c)})`;
-                ctx.fillRect(offsetX + x * DRAW_SCALE_X, offsetY + y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
-            }
-        }
-    }
+const getMousePosition = (e:MouseEvent) => {
+    const rect = canvas.getBoundingClientRect();
+    const posX = Math.floor((e.clientX - rect.left - offsetX) / DRAW_SCALE_X);
+    const posY = Math.floor((e.clientY - rect.top - offsetY) / DRAW_SCALE_X);
+    return { posX, posY };
 };
 
-// Adjust click position based on the canvas centering
-addEventListener("click", (e) => {
-    const rect = canvas.getBoundingClientRect();
+canvas.addEventListener("mousedown", (e) => {
+    isDrawing = true;
+    const { posX, posY } = getMousePosition(e);
 
-    // Account for canvas' position on the screen, and the offset within the canvas
-    const posX = Math.floor((e.clientX - rect.left - offsetX) / DRAW_SCALE_X);
-    const posY = height+Math.floor((e.clientY - rect.top ) / DRAW_SCALE_X);
-    console.log(e.clientX, e.clientY, rect.left, rect.top, offsetX, offsetY, posX, posY)
-
-    // Ensure the clicked position is within valid bounds
+ 
     if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
-        // createWall(posX, posY);
+        createWall(posX, posY);
     }
+});
+
+canvas.addEventListener("mousemove", (e) => {
+    if (!isDrawing) return;  //
+
+    const { posX, posY } = getMousePosition(e);
+
+    
+    if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
+        createWall(posX, posY);
+    }
+});
+
+
+canvas.addEventListener("mouseup", () => {
+    isDrawing = false;
+});
+
+
+canvas.addEventListener("mouseleave", () => {
+    isDrawing = false;
 });
 
 
 
 let time = performance.now();
-let iterationCounter = 0;  // Counter to track iterations
+let iterationCounter = 0;  
 
 const tick = () => {
     if (paused) {
