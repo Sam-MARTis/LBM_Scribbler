@@ -42,10 +42,21 @@
             padding: 5px 10px;
             border-radius: 5px;
         }
+        button {
+            background-color: #333;
+            color: #e0e0e0;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #444;
+        }
         #projectCanvas {
             width: 100%;
-            max-width: 800px;
-            height: 400px;
+            max-width: 100%;
+            height: 100%;
             background-color: #000;
             display: block;
             margin: 0 auto;
@@ -61,30 +72,21 @@
             <label for="plotOptions">Plot: 
                 <select id="plotOptions">
                     <option value="curl">Curl</option>
+                    <option value="rho">Density</option>
                     <option value="speed">Speed</option>
-                    <option value="xvelocity">X Velocity</option>
-                    <option value="yvelocity">Y Velocity</option>
+                    <option value="vx">X Velocity</option>
+                    <option value="vy">Y Velocity</option>
                 </select>
             </label>
             <label for="viscositySlider">Viscosity: 
-                <input type="range" id="viscositySlider" min="0.01" max="1.0" step="0.01" value="0.5">
+                <input type="range" id="viscositySlider" min="0.005" max="0.1" step="0.005" value="0.04">
             </label>
-            <label for="velocitySlider">Velocity: 
-                <input type="range" id="velocitySlider" min="0" max="100" step="1" value="50">
-            </label>
-            <label for="gridSize">Grid Size: 
-                <select id="gridSize">
-                    <option value="32">32x32</option>
-                    <option value="64">64x64</option>
-                    <option value="128">128x128</option>
-                    <option value="256">256x256</option>
-                </select>
-            </label>
+            <!-- Button next to the slider -->
+            <button id="but1">Start/Pause</button>
         </div>
         <canvas id="projectCanvas"></canvas>
     </div>
 
     <script src="main.js"></script>
-    
 </body>
 </html>
