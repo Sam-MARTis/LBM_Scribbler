@@ -319,13 +319,34 @@ const drawCircleBarrier = (radius, pos_X) => {
 };
 // drawCircleBarrier(5, 50)
 // drawCircleBarrier(7,90)
-// creat triangle but ..
-let g = 0;
-for (let j = height / 4; j < height / 2; j++) {
-    for (let i = j; i < width / 4; i++) {
-        createWall(i, j);
+// creat ramp but ..
+const drawramp = (ramp_H, pos_X_ramp, pos_Y_ramp) => {
+    for (let i = pos_X_ramp; i < ramp_H + pos_X_ramp; i++) {
+        for (let j = pos_Y_ramp; j < i + pos_Y_ramp - pos_X_ramp; j++) {
+            createWall(i, j);
+        }
     }
-}
-console.log("Initialization took", performance.now() - time, "ms");
+    for (let i = pos_X_ramp; i < pos_X_ramp + ramp_H; i++) {
+        for (let j = pos_Y_ramp; j > pos_Y_ramp - i + pos_X_ramp; j--) {
+            createWall(i, j);
+        }
+    }
+};
+// creat invertedramp but ..
+const drawinvertedramp = (ramp_H, pos_X_ramp, pos_Y_ramp) => {
+    for (let i = ramp_H + pos_X_ramp; i >= pos_X_ramp; i--) {
+        for (let j = ramp_H - i + pos_Y_ramp + pos_X_ramp; j > pos_Y_ramp; j--) {
+            createWall(i, j);
+        }
+    }
+    for (let i = pos_X_ramp; i < pos_X_ramp + ramp_H; i++) {
+        for (let j = pos_Y_ramp - ramp_H + (i - pos_X_ramp); j <= pos_Y_ramp; j++) {
+            createWall(i, j);
+        }
+    }
+};
+drawinvertedramp(10, 25, 40);
+console.log();
+// drawCircleBarrier(7,90)"Initialization took", performance.now()-time, "ms")
 time = performance.now();
 tick();
