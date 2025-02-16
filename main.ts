@@ -3,32 +3,71 @@ canvas.width = window.innerWidth * devicePixelRatio;
 canvas.height = window.innerHeight * devicePixelRatio;
 const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
-const height = 64                   
-const width = 128                    
-const viscosity = 0.01           
-const omega = 1/(3*viscosity+0.5)
-const u0 = 0.2                
+const height = 100                   
+const width = 200   
+const multiplier = 1.5
+let viscosity = 0.005*multiplier       
+let omega = 1/(3*viscosity+0.5)
+const u0 = 0.2/multiplier    
 const four9ths = 4./9.                
 const one9th   = 1./9.                
 const one36th  = 1./36.      
-const CALC_DRAW_RATIO = 10   
-const DRAW_SCALE_X = canvas.width/width
-let n0 = new Float32Array(height*width)
-let nN = new Float32Array(height*width)
-let nS = new Float32Array(height*width)
-let nE = new Float32Array(height*width)
-let nW = new Float32Array(height*width)
-let nNW= new Float32Array(height*width)
-let nNE= new Float32Array(height*width)
-let nSE= new Float32Array(height*width)
-let nSW= new Float32Array(height*width)
+const CALC_DRAW_RATIO = 15   
+const DRAW_SCALE_X = 0.9*canvas.width/width
+let n0 = new Float32Array(new ArrayBuffer(height*width*Float32Array.BYTES_PER_ELEMENT))
+let nN = new Float32Array(new ArrayBuffer(height*width*Float32Array.BYTES_PER_ELEMENT))
+let nS = new Float32Array(new ArrayBuffer(height*width*Float32Array.BYTES_PER_ELEMENT))
+let nE = new Float32Array(new ArrayBuffer(height*width*Float32Array.BYTES_PER_ELEMENT))
+let nW = new Float32Array(new ArrayBuffer(height*width*Float32Array.BYTES_PER_ELEMENT))
+let nNW= new Float32Array(new ArrayBuffer(height*width*Float32Array.BYTES_PER_ELEMENT))
+let nNE= new Float32Array(new ArrayBuffer(height*width*Float32Array.BYTES_PER_ELEMENT))
+let nSE= new Float32Array(new ArrayBuffer(height*width*Float32Array.BYTES_PER_ELEMENT))
+let nSW= new Float32Array(new ArrayBuffer(height*width*Float32Array.BYTES_PER_ELEMENT))
 
-let bar= new Float32Array(height*width)
+let bar= new Float32Array(new ArrayBuffer(height*width*Float32Array.BYTES_PER_ELEMENT))
 
-let rho   = new Float32Array(height*width)
-let ux    = new Float32Array(height*width)
-let uy    = new Float32Array(height*width)
-let speed2= new Float32Array(height*width)
+let rho   = new Float32Array(new ArrayBuffer(height*width*Float32Array.BYTES_PER_ELEMENT))
+let ux    = new Float32Array(new ArrayBuffer(height*width*Float32Array.BYTES_PER_ELEMENT))
+let uy    = new Float32Array(new ArrayBuffer(height*width*Float32Array.BYTES_PER_ELEMENT))
+let speed2= new Float32Array(new ArrayBuffer(height*width*Float32Array.BYTES_PER_ELEMENT))
+let plotOption: String = "curl";
+
+const plotSelect = document.getElementById("plotOptions") as HTMLSelectElement;
+
+// Add an event listener to detect changes in the dropdown
+plotSelect.addEventListener("change", () => {
+    // Update the PlotOption variable to the selected value
+    plotOption = plotSelect.value;
+});
+
+let paused = false;
+
+let animVal: number | null = null;
+const but1 = document.getElementById("but1") as HTMLButtonElement;
+
+but1.addEventListener("click", () => {
+    paused = !paused;  // Toggle the paused state
+    if (!paused) {
+        // Resume the animation
+        tick();
+    } else {
+        // Pause the animation by canceling the next frame
+        if (animVal !== null) {
+            cancelAnimationFrame(animVal);
+        }
+    }
+});
+
+const viscositySlider = document.getElementById("viscositySlider") as HTMLInputElement;
+
+// Add an event listener to detect changes in the slider
+viscositySlider.addEventListener("input", () => {
+    // Update the viscosity variable to the slider's current value
+    viscosity = parseFloat(viscositySlider.value)*multiplier;
+    omega = 1/(3*viscosity+0.5)
+    // console.log(`Viscosity updated to: ${viscosity}`);
+});
+
 
 const flatten2D = (i: number, j:number): number => {
     return j*width + i
@@ -214,7 +253,6 @@ const initialize = (u0:number = 0.1) => {
     let xcoord = 0
     let ycoord = 0
     
-    let count = 0
     for(let i = 0; i<height*width; i++){
         n0[i] = four9ths* (1 - 1.5*(u0**2.))
         nN[i] = one9th  * (1 - 1.5*(u0**2.))
@@ -236,64 +274,109 @@ const initialize = (u0:number = 0.1) => {
         ycoord = xcoord != 0 ? ycoord : ycoord + 1
     }
 }
-const handleBoundaries =() =>{
-
-}
-const draw = () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for(let x = 2; x<width-2; x++){
-        for(let y = 2; y<height-10; y++){
-            if (bar[y*width + x]){
-                ctx.fillStyle = "black"
-                ctx.fillRect(x*DRAW_SCALE_X, y*DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X)
-            }
-            else{
-                const i = y*width + x
-                const c = Math.floor(255 * Math.sqrt(speed2[i]))
-                // const c = 5000*(uy[x+1+y*width] - uy[x-1+y*width] - ux[x+(y+1)*width] + ux[x+(y-1)*width])
-                // ctx.fillStyle = `rgb(${125+c}, ${125+c}, ${125+c})`
-                ctx.fillStyle = `rgb(${c}, ${c}, ${c})`
-                ctx.fillRect(x*DRAW_SCALE_X, y*DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X)
-            }
-        }
-    }
-}
-
-
-
 const createWall = (x: number, y: number) => {
     bar[flatten2D(x, y)] = 1
 }
+
+const handleBoundaries =() =>{
+
+}
+
+const offsetX = (canvas.width - width * DRAW_SCALE_X) / 2;
+const offsetY = (canvas.height - height * DRAW_SCALE_X) / 2;
+const draw = () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Calculate offsets to center the simulation on the canvas
+
+    for (let x = 2; x < width - 2; x++) {
+        for (let y = 2; y < height - 10; y++) {
+            const i = y * width + x;
+
+            if (bar[i]) {
+                ctx.fillStyle = "black";
+                ctx.fillRect(offsetX + x * DRAW_SCALE_X, offsetY + y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
+            } else {
+                let c = 0;
+                switch (plotOption) {
+                    case "rho":
+                        c = 1*Math.floor(200 * (rho[i]**6));
+                        ctx.fillStyle = `rgb(${c}, ${c}, ${c})`;
+                        break;
+                    case "vx":
+                        c = 10*Math.floor(255 * ux[i]);
+                        ctx.fillStyle = `rgb(${0}, ${c}, ${c})`;
+                        break;
+                    case "vy":
+                        c = 10*Math.floor(255 * uy[i]);
+                        ctx.fillStyle = `rgb(${c}, ${c}, ${0})`;
+                        break;
+                    case "speed":
+                        c = 5*Math.floor(255 * Math.sqrt(speed2[i]));
+                        ctx.fillStyle = `rgb(${c}, ${c}, ${c})`;
+                        break;
+                    case "curl":
+                        c = 15*Math.floor(255 * (uy[x + 1 + y * width] - uy[x - 1 + y * width] - ux[x + (y + 1) * width] + ux[x + (y - 1) * width]));
+                        ctx.fillStyle = `rgb(${Math.max(0, c)}, ${0}, ${Math.max(0, -c)})`;
+                        break;
+                    
+                }
+                // const c = 3000 * (uy[x + 1 + y * width] - uy[x - 1 + y * width] - ux[x + (y + 1) * width] + ux[x + (y - 1) * width]);
+                // ctx.fillStyle = `rgb(${Math.max(0, c)}, ${0}, ${Math.max(0, -c)})`;
+                ctx.fillRect(offsetX + x * DRAW_SCALE_X, offsetY + y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
+            }
+        }
+    }
+};
+
+// Adjust click position based on the canvas centering
+addEventListener("click", (e) => {
+    const rect = canvas.getBoundingClientRect();
+
+    // Account for canvas' position on the screen, and the offset within the canvas
+    const posX = Math.floor((e.clientX - rect.left - offsetX) / DRAW_SCALE_X);
+    const posY = height+Math.floor((e.clientY - rect.top ) / DRAW_SCALE_X);
+    console.log(e.clientX, e.clientY, rect.left, rect.top, offsetX, offsetY, posX, posY)
+
+    // Ensure the clicked position is within valid bounds
+    if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
+        // createWall(posX, posY);
+    }
+});
+
+
 
 
 
 let time = performance.now()
 const tick = () => {
+    if (paused) {
+        return;
+    }
     for(let iter = 0; iter<CALC_DRAW_RATIO; iter++){
     stream()
     bounce()
     collide()
     }
     draw()
-    requestAnimationFrame(tick)
+    animVal = requestAnimationFrame(tick)
     const newTime = performance.now()
-console.log("Simulation took", newTime-time, "ms")
-console.log("n0[4000]: ", n0[4000])
+// console.log("Simulation took", newTime-time, "ms")
+// console.log("n0[4000]: ", n0[4000])
 time = newTime
 
 }
 
+
+
 initialize(u0)
-for(let j = 22; j<26; j++){
+// const wallSize = Math.floor(height/5)
+const wallSize = 10
+for(let j = Math.floor((height/2)-wallSize/2)-1; j<(height/2)+wallSize/2; j++){
     createWall(20, j)
 }
 
-addEventListener("click", (e)=>{
-    const posX = Math.floor(e.layerX/DRAW_SCALE_X)
-    const posY = Math.floor(e.layerY/DRAW_SCALE_X)
-    createWall(posX, posY)
 
-})
 
 
 console.log("Initialization took", performance.now()-time, "ms")
