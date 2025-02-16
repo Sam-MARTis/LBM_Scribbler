@@ -73,6 +73,9 @@ const flatten2D = (i: number, j:number): number => {
     return j*width + i
 }
 
+const D_Square = (x1:number,y1:number, x2:number,y2:number): number => {
+    return ((x1-x2)*(x1-x2))+((y1-y2)*(y1-y2))
+}
 
 const stream = () => {
     
@@ -277,6 +280,9 @@ const initialize = (u0:number = 0.1) => {
 const createWall = (x: number, y: number) => {
     bar[flatten2D(x, y)] = 1
 }
+const removeWall = (x: number, y:number) => {
+    bar[flatten2D(x, y)] = 0;
+}
 
 const handleBoundaries =() =>{
 
@@ -371,11 +377,31 @@ time = newTime
 
 initialize(u0)
 // const wallSize = Math.floor(height/5)
-const wallSize = 10
-for(let j = Math.floor((height/2)-wallSize/2)-1; j<(height/2)+wallSize/2; j++){
-    createWall(20, j)
-}
+// const wallSize = 10
+// for(let j = Math.floor((height/2)-wallSize/2)-1; j<(height/2)+wallSize/2; j++){
+//     createWall(20, j)
+// }
 
+// creat block
+const Block_width = 15;
+const Block_Height = 15 ;
+// for(let i = 20; i<20+Block_width; i++){
+//     for(let j = Math.floor((height/2)-Block_Height/2)-1; j<(height/2)+Block_Height/2; j++){
+//         createWall(i,j)
+//     }
+// }
+
+//creat Circle
+const radius = 10;
+const pos_X = 25;
+const pos_Y = Math.floor(height/2);
+for(let i = 0; i<width; i++){
+    for(let j = 0; j<height; j++){
+        if((D_Square(i,j,pos_X,pos_Y))<=radius**2 - 0.001){
+            createWall(i,j)
+        } 
+    }
+}
 
 
 
