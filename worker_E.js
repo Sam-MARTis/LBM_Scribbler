@@ -27,9 +27,9 @@ let speed2 = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTE
     const stream = () => {
 
 
-        // for x in range(0, width-1):
+        
         for (let x = 0; x < width - 1; x++) {
-            // for y in range(1, height-1):
+            
             for (let y = 1; y < height - 1; y++) {
 
                 nN[y * width + x] = nN[y * width + x + width]
@@ -53,7 +53,7 @@ let speed2 = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTE
 
 
         const x = width;
-        // for y in range(1, height-1):
+        
         for (let y = 1; y < height - 1; y++) {
 
 
@@ -65,15 +65,14 @@ let speed2 = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTE
     const bounce = () => {
 
 
-        // for x in range(2, width-2):
-        //     for y in range(2, height-2):
+        
         for (let x = 2; x < width - 2; x++) {
             for (let y = 2; y < height - 2; y++) {
     
     
-                // if (bar[y*width + x]):
+                
                 if (bar[y * width + x]) {
-                    //Barrier bounces the velocity back
+                    
     
     
                     nN[(y - 1) * width + x] = nS[y * width + x]
@@ -100,11 +99,9 @@ let speed2 = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTE
         }
     }
     
-    // def collide():
+   
     const collide = (om:Number) => {
     
-        // for x in range(1, width-1):
-        //     for y in range(1, height-1):
         for (let x = 1; x < width - 1; x++) {
             for (let y = 1; y < height - 1; y++) {
     
@@ -112,8 +109,7 @@ let speed2 = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTE
                 let i = y * width + x
     
     
-                // if (bar[i]):
-                //     continue
+                
     
                 if (bar[i]) {
                     continue
@@ -123,22 +119,13 @@ let speed2 = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTE
     
                     rho[i] = n0[i] + nN[i] + nE[i] + nS[i] + nW[i] + nNE[i] + nSE[i] + nSW[i] + nNW[i]
     
-                    // if (rho[i] > 0):
+                    
                     if (rho[i] > 0) {
                         ux[i] = (nE[i] + nNE[i] + nSE[i] - nW[i] - nNW[i] - nSW[i]) * (1 - (rho[i] - 1) + ((rho[i] - 1) ** 2.))
                         uy[i] = (nN[i] + nNE[i] + nNW[i] - nS[i] - nSE[i] - nSW[i]) * (1 - (rho[i] - 1) + ((rho[i] - 1) ** 2.))
                     }
     
-                    // one9th_rho = one9th * rho[i]
-                    // one36th_rho = one36th * rho[i]
-                    // vx3 = 3 * ux[i]
-                    // vy3 = 3 * uy[i]
-                    // vx2 = ux[i] * ux[i]
-                    // vy2 = uy[i] * uy[i]
-                    // vxvy2 = 2 * ux[i] * uy[i]
-                    // v2 = vx2 + vy2
-                    // speed2[i] = v2
-                    // v215 = 1.5 * v2
+                    
                     const one9th_rho = one9th * rho[i]
                     const one36th_rho = one36th * rho[i]
                     const vx3 = 3 * ux[i]

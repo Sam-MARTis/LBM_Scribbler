@@ -16,7 +16,7 @@ const ctx = canvas.getContext("2d");
 const height = 100;
 const width = 200;
 const multiplier = 1.5;
-let viscosity = 0.01 * multiplier;
+let viscosity = 0.008 * multiplier;
 let omega = 1 / (3 * viscosity + 0.5);
 const u0 = 0.2 / multiplier;
 const four9ths = 4. / 9.;
@@ -51,13 +51,13 @@ let paused = false;
 let animVal = 0;
 const playPauseButton = document.getElementById("but1");
 playPauseButton.addEventListener("click", () => {
-    paused = !paused; // Toggle the paused state
+    paused = !paused; 
     if (!paused) {
-        // Resume the animation
+        
         tick();
     }
     else {
-        // Pause the animation by canceling the next frame
+       
         if (animVal !== null) {
             cancelAnimationFrame(animVal);
         }
@@ -70,9 +70,9 @@ const D_Square = (x1, y1, x2, y2) => {
     return ((x1 - x2) * (x1 - x2)) + ((y1 - y2) * (y1 - y2));
 };
 const stream = () => {
-    // for x in range(0, width-1):
+    
     for (let x = 0; x < width - 1; x++) {
-        // for y in range(1, height-1):
+        
         for (let y = 1; y < height - 1; y++) {
             nN[y * width + x] = nN[y * width + x + width];
             nNW[y * width + x] = nNW[y * width + x + width + 1];
@@ -86,7 +86,7 @@ const stream = () => {
         }
     }
     const x = width;
-    // for y in range(1, height-1):
+    
     for (let y = 1; y < height - 1; y++) {
         nN[y * width + x] = nN[y * width + x + width];
         nS[(height - y - 1) * width + x] = nS[(height - y - 1 - 1) * width + x];
@@ -106,13 +106,12 @@ const ensureStability = () => {
     }
 };
 const bounce = () => {
-    // for x in range(2, width-2):
-    //     for y in range(2, height-2):
+    
     for (let x = 2; x < width - 2; x++) {
         for (let y = 2; y < height - 2; y++) {
-            // if (bar[y*width + x]):
+            
             if (bar[y * width + x]) {
-                //Barrier bounces the velocity back
+                
                 nN[(y - 1) * width + x] = nS[y * width + x];
                 nS[(y + 1) * width + x] = nN[y * width + x];
                 nE[y * width + x + 1] = nW[y * width + x];
@@ -134,35 +133,24 @@ const bounce = () => {
         }
     }
 };
-// def collide():
+
 const collide = () => {
-    // for x in range(1, width-1):
-    //     for y in range(1, height-1):
+    
     for (let x = 1; x < width - 1; x++) {
         for (let y = 1; y < height - 1; y++) {
             let i = y * width + x;
-            // if (bar[i]):
-            //     continue
+            
             if (bar[i]) {
                 continue;
             }
             else {
                 rho[i] = n0[i] + nN[i] + nE[i] + nS[i] + nW[i] + nNE[i] + nSE[i] + nSW[i] + nNW[i];
-                // if (rho[i] > 0):
+                
                 if (rho[i] > 0) {
                     ux[i] = (nE[i] + nNE[i] + nSE[i] - nW[i] - nNW[i] - nSW[i]) * (1 - (rho[i] - 1) + ((rho[i] - 1) ** 2.));
                     uy[i] = (nN[i] + nNE[i] + nNW[i] - nS[i] - nSE[i] - nSW[i]) * (1 - (rho[i] - 1) + ((rho[i] - 1) ** 2.));
                 }
-                // one9th_rho = one9th * rho[i]
-                // one36th_rho = one36th * rho[i]
-                // vx3 = 3 * ux[i]
-                // vy3 = 3 * uy[i]
-                // vx2 = ux[i] * ux[i]
-                // vy2 = uy[i] * uy[i]
-                // vxvy2 = 2 * ux[i] * uy[i]
-                // v2 = vx2 + vy2
-                // speed2[i] = v2
-                // v215 = 1.5 * v2
+               
                 const one9th_rho = one9th * rho[i];
                 const one36th_rho = one36th * rho[i];
                 const vx3 = 3 * ux[i];
@@ -186,30 +174,7 @@ const collide = () => {
         }
     }
 };
-// def initialize(xtop, ytop, yheight, u0=u0):
-//     xcoord = 0
-//     ycoord = 0
-//     count = 0
-//     for i in range(height*width):
-//         n0[i] = four9ths* (1 - 1.5*(u0**2.))
-//         nN[i] = one9th  * (1 - 1.5*(u0**2.))
-//         nS[i] = one9th  * (1 - 1.5*(u0**2.))
-//         nE[i] = one9th  * (1 + 3*u0 + 4.5*(u0**2.) - 1.5*(u0**2.))
-//         nW[i] = one9th  * (1 - 3*u0 + 4.5*(u0**2.) - 1.5*(u0**2.))
-//         nNE[i]= one36th * (1 + 3*u0 + 4.5*(u0**2.) - 1.5*(u0**2.))
-//         nSE[i]= one36th * (1 + 3*u0 + 4.5*(u0**2.) - 1.5*(u0**2.))
-//         nNW[i]= one36th * (1 - 3*u0 + 4.5*(u0**2.) - 1.5*(u0**2.))
-//         nSW[i]= one36th * (1 - 3*u0 + 4.5*(u0**2.) - 1.5*(u0**2.))
-//         rho[i] =  n0[i] + nN[i] + nS[i] + nE[i] + nW[i] + nNE[i] + nSE[i] + nNW[i] + nSW[i]
-//         ux[i]  = (nE[i] + nNE[i] + nSE[i] - nW[i] - nNW[i] - nSW[i]) * (1-(rho[i]-1)+((rho[i]-1)**2.))
-//         uy[i]  = (nN[i] + nNE[i] + nNW[i] - nS[i] - nSE[i] - nSW[i]) * (1-(rho[i]-1)+((rho[i]-1)**2.))
-//         if (xcoord==xtop):
-//             if (ycoord >= ytop):
-//                 if (ycoord < (ytop+yheight)):
-//                     count += 1
-//                     bar[ycoord*width + xcoord] = 1
-//         xcoord = (xcoord+1) if xcoord<(width-1) else 0
-//         ycoord = ycoord if (xcoord != 0) else (ycoord + 1)
+
 const initialize = (u0 = 0.1) => {
     let xcoord = 0;
     let ycoord = 0;
@@ -239,10 +204,10 @@ const removeWall = (x, y) => {
 const handleBoundaries = () => {
 };
 const offsetX = (canvas.width - width * DRAW_SCALE_X) / 2;
-// const offsetY = (canvas.height - height * DRAW_SCALE_X) / 2;
+
 const offsetY = 0;
 const draw = (id, rho, ux, uy, speed2) => {
-    //   ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
     const actualOffset = offsetY + id * height * DRAW_SCALE_X;
     for (let x = 2; x < width - 2; x++) {
         for (let y = 2; y < height - 10; y++) {
@@ -275,8 +240,7 @@ const draw = (id, rho, ux, uy, speed2) => {
                         ctx.fillStyle = `rgb(${Math.max(0, c)}, ${0}, ${Math.max(0, -c)})`;
                         break;
                 }
-                // const c = 3000 * (uy[x + 1 + y * width] - uy[x - 1 + y * width] - ux[x + (y + 1) * width] + ux[x + (y - 1) * width]);
-                // ctx.fillStyle = `rgb(${Math.max(0, c)}, ${0}, ${Math.max(0, -c)})`;
+                
                 ctx.fillRect(offsetX + x * DRAW_SCALE_X, actualOffset + y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
             }
         }
@@ -293,7 +257,7 @@ const tick = () => {
         bounce();
         collide();
     }
-    // ensureStability()   
+      
     draw(0, rho, ux, uy, speed2);
     animVal = requestAnimationFrame(tick);
     const newTime = performance.now();
@@ -307,8 +271,7 @@ const drawBlock = (Block_Height, Block_width, pos_X_block, pos_Y_block) => {
         }
     }
 };
-// drawBlock(5,15,25,25)
-//creat Circle
+
 const drawCircleBarrier = (radius, pos_X) => {
     const pos_Y = Math.floor(height / 2);
     for (let i = 0; i < width; i++) {
@@ -319,9 +282,7 @@ const drawCircleBarrier = (radius, pos_X) => {
         }
     }
 };
-// drawCircleBarrier(5, 60)
-// drawCircleBarrier(7,90)
-// creat ramp but ..
+
 const drawramp = (ramp_H, pos_X_ramp, pos_Y_ramp) => {
     for (let i = pos_X_ramp; i < ramp_H + pos_X_ramp; i++) {
         for (let j = pos_Y_ramp; j < i + pos_Y_ramp - pos_X_ramp; j++) {
@@ -334,7 +295,7 @@ const drawramp = (ramp_H, pos_X_ramp, pos_Y_ramp) => {
         }
     }
 };
-// creat invertedramp but ..
+
 const drawinvertedramp = (ramp_H, pos_X_ramp, pos_Y_ramp) => {
     for (let i = ramp_H + pos_X_ramp; i >= pos_X_ramp; i--) {
         for (let j = ramp_H - i + pos_Y_ramp + pos_X_ramp; j > pos_Y_ramp; j--) {
@@ -348,7 +309,7 @@ const drawinvertedramp = (ramp_H, pos_X_ramp, pos_Y_ramp) => {
     }
 };
 drawCircleBarrier(10, 35);
-// drawinvertedramp(8,25,50)
+
 let isDrawing = false;
 const getMousePosition = (e) => {
     const rect = canvas.getBoundingClientRect();
@@ -368,7 +329,7 @@ canvas.addEventListener("mousedown", (e) => {
 });
 canvas.addEventListener("mousemove", (e) => {
     if (!isDrawing)
-        return; //
+        return; 
     if (multiSimCHeckbox.checked) {
         return;
     }
@@ -392,16 +353,16 @@ canvas.addEventListener("mouseleave", () => {
     isDrawing = false;
 });
 console.log();
-// drawCircleBarrier(7,90)"Initialization took", performance.now()-time, "ms")
+
 time = performance.now();
-// tick()
+
 let workers = [];
-// Start the loop from i = 0 so workers are correctly pushed into the array.
+
 for (let i = 0; i < NoOfWorkers; i++) {
     workers.push(new Worker("worker1.js"));
 }
 const setup = () => __awaiter(void 0, void 0, void 0, function* () {
-    // Send messages to all workers, including worker1 and worker2
+    
     for (let i = 0; i < NoOfWorkers; i++) {
         workers[i].postMessage({
             messageType: "initialize",
@@ -425,7 +386,7 @@ const constUpdateViscosity = () => {
         });
     }
 };
-// Attach the onmessage handler for each worker in the array
+
 for (let i = 0; i < NoOfWorkers; i++) {
     workers[i].onmessage = (e) => {
         draw(e.data.id, e.data.rho, e.data.ux, e.data.uy, e.data.speed2);
@@ -438,16 +399,16 @@ const multiSimControls = document.getElementById('multiSimControls');
 const checkboxesContainer = document.getElementById('checkboxes');
 const submitBtn = document.getElementById('submitBtn');
 const disclaimer = document.getElementById('disclaimer');
-// Function to show the disclaimer
+
 function showDisclaimer() {
-    disclaimer.innerText = 'Click "r" to submit'; // Show disclaimer
+    disclaimer.innerText = 'Click "r" or click here to submit'; 
 }
-// Function to hide the disclaimer
+
 function hideDisclaimer() {
-    disclaimer.innerText = ''; // Hide disclaimer
+    disclaimer.innerText = ''; 
 }
 multiSimCHeckbox.addEventListener("change", function () {
-    // If the checkbox is checked, disable the viscosity slider
+    
     if (this.checked) {
         cancelAnimationFrame(animVal);
         showDisclaimer();
@@ -456,8 +417,8 @@ multiSimCHeckbox.addEventListener("change", function () {
         viscositySlider.disabled = true;
         playPauseButton.disabled = true;
         multiSimControls.style.display = 'flex';
-        // Create checkboxes dynamically
-        checkboxesContainer.innerHTML = ''; // Clear previous checkboxes if any
+        
+        checkboxesContainer.innerHTML = ''; 
         for (let i = 1; i <= 10; i++) {
             const checkboxWrapper = document.createElement('div');
             const checkbox = document.createElement('input');
@@ -465,7 +426,7 @@ multiSimCHeckbox.addEventListener("change", function () {
             checkbox.id = `${i}`;
             const label = document.createElement('label');
             label.setAttribute('for', checkbox.id);
-            // label.textContent = `name${i}`;
+            
             if (i === 1) {
                 label.textContent = `Pacman`;
             }
@@ -559,51 +520,42 @@ const createWebWorkerSims = (IDsToUse) => {
         };
     }
 };
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'r') {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        canvas.height = window.innerHeight * devicePixelRatio * 1.1;
-        cancelAnimationFrame(animVal);
-        console.log('Submit button clicked');
-        IDsToUse = [];
-        const checkboxes = checkboxesContainer.querySelectorAll('input[type="checkbox"]:checked');
-        checkboxes.forEach(checkbox => {
-            IDsToUse.push(parseInt(checkbox.id)); // Push the checked checkbox's id
-        });
-        console.log('Selected IDs:', IDsToUse);
-        canvas.height = window.innerHeight * devicePixelRatio * IDsToUse.length * 1.1;
-        createWebWorkerSims(IDsToUse);
-    }
-});
-// Handle form submission
-submitBtn.addEventListener('click', () => {
+const performMultiSim = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.height = window.innerHeight * devicePixelRatio * 1.1;
     cancelAnimationFrame(animVal);
     console.log('Submit button clicked');
     IDsToUse = [];
     const checkboxes = checkboxesContainer.querySelectorAll('input[type="checkbox"]:checked');
     checkboxes.forEach(checkbox => {
-        IDsToUse.push(parseInt(checkbox.id)); // Push the checked checkbox's id
+        IDsToUse.push(parseInt(checkbox.id)); 
     });
     console.log('Selected IDs:', IDsToUse);
     canvas.height = window.innerHeight * devicePixelRatio * IDsToUse.length * 1.1;
     createWebWorkerSims(IDsToUse);
+};
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'r') {
+        if (multiSimCHeckbox.checked) {
+            performMultiSim();
+        }
+    }
+});
+
+submitBtn.addEventListener('click', () => {
+    performMultiSim();
+});
+
+disclaimer.addEventListener('click', (e) => {
+    if (multiSimCHeckbox.checked) {
+        performMultiSim();
+    }
 });
 viscositySlider.addEventListener("input", () => {
-    // Update the viscosity variable to the slider's current value
+    
     viscosity = parseFloat(viscositySlider.value) * multiplier;
     omega = 1 / (3 * viscosity + 0.5);
-    // for (let i = 0; i < NoOfWorkers; i++) {
-    //     workers[i].postMessage({
-    //         messageType: "updateViscosity",
-    //         viscosity
-    //     });
-    // }
-    // console.log(`Viscosity updated to: ${viscosity}`);
+    
 });
 tick();
-// setup()
-// workers = []
-// for (let i = 0; i < NoOfWorkers; i++) {
-//     workers[i].terminate();
-// }
+

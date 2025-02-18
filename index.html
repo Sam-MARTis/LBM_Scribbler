@@ -83,6 +83,10 @@
             grid-template-columns: repeat(3, auto); 
             gap: 10px; 
         }
+        .disclaimer:hover {
+            cursor: pointer;
+          
+        }
 
         
     </style>
@@ -105,31 +109,31 @@
             <label for="viscositySlider">Viscosity: 
                 <input type="range" id="viscositySlider" min="0.003" max="0.1" step="0.001" value="0.015">
             </label>
-            <!-- Checkbox for multi-simulation -->
+            
             <label for="multiSimCheckbox">
                 <input type="checkbox" id="multiSimCheckbox">
                 Simulate Multiple Systems
             </label>
-            <!-- Button next to the slider -->
+            
             <button id="but1">Start/Pause</button>
         </div>
         <div class="disclaimer" id="disclaimer" >
         </div>
 
-        <!-- Multi-sim checkboxes and submit button -->
+       
         <div class="multiSimControls" id="multiSimControls">
             <div id="checkboxes">
-                <!-- Checkboxes will be inserted here -->
+                
             </div>
             <button id="submitBtn" style="display: none;">Submit</button>
         </div>
 
-        <!-- Warning about CPU intensity -->
+        
         <div class="warning">
             Warning: Simulating multiple systems can be CPU intensive.
         </div>
 
-<!-- Disclaimer (initially hidden) -->
+
 
 
     </div>
