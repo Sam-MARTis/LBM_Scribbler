@@ -237,16 +237,16 @@ onmessage = function (e) {
       ycoord = xcoord != 0 ? ycoord : ycoord + 1;
     }
   };
-  const createWall = (x, y) => {
+  const createWall = (x:number, y:number) => {
     bar[flatten2D(x, y)] = 1;
   };
-  const removeWall = (x, y) => {
+  const removeWall = (x:number, y:number) => {
     bar[flatten2D(x, y)] = 0;
   };
 
   initialize(u0);
 
-  const drawBlock = (Block_Height, Block_width, pos_X_block, pos_Y_block) => {
+  const drawBlock = (Block_Height:number, Block_width:number, pos_X_block:number, pos_Y_block:number) => {
     for (let i = pos_X_block; i < pos_X_block + Block_width; i++) {
       for (
         let j = Math.floor(Math.abs(pos_Y_block - Block_Height / 2)) - 1;
@@ -263,7 +263,7 @@ onmessage = function (e) {
     stream();
     bounce();
     collide();
-    if (j % CALC_DRAW_RATIO*10 == 0) {
+    if (j % CALC_DRAW_RATIO == 0) {
       postMessage({ id, rho, ux, uy, speed2 });
     }
     j++

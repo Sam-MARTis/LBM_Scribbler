@@ -12,7 +12,7 @@ const u0 = 0.2 / multiplier;
 const four9ths = 4. / 9.;
 const one9th = 1. / 9.;
 const one36th = 1. / 36.;
-const CALC_DRAW_RATIO = 15;
+const CALC_DRAW_RATIO = 4;
 const DRAW_SCALE_X = 1 * canvas.width / width;
 const maxSpeed = 0.4;
 let n0 = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
@@ -313,7 +313,7 @@ const drawCircleBarrier = (radius, pos_X) => {
         }
     }
 };
-drawCircleBarrier(5, 60);
+// drawCircleBarrier(5, 60)
 // drawCircleBarrier(7,90)
 // creat ramp but ..
 const drawramp = (ramp_H, pos_X_ramp, pos_Y_ramp) => {
