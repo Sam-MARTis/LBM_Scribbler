@@ -257,7 +257,7 @@ onmessage = function (e) {
       }
     }
   };
-//   drawBlock(5, 15, 25, 25);
+  drawBlock(5, 15, 25, 25);
   let j = 1;
   const tick = () => {
     stream();

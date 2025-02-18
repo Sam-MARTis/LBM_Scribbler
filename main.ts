@@ -309,7 +309,7 @@ const offsetX = (canvas.width - width * DRAW_SCALE_X) / 2;
 // const offsetY = (canvas.height - height * DRAW_SCALE_X) / 2;
 const offsetY = 0
 const draw = (id: number, rho:Float32Array, ux:Float32Array, uy: Float32Array, speed2: Float32Array) => {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+//   ctx.clearRect(0, 0, canvas.width, canvas.height);
   const actualOffset = offsetY + id*height*DRAW_SCALE_X
   
 
@@ -507,4 +507,8 @@ worker1.onmessage = (e) => {
     // const { id, rho, ux, uy, bar } = e.data;
     draw(e.data.id, e.data.rho, e.data.ux, e.data.uy, e.data.speed2);
 };
+worker2.onmessage = (e) => {
+    // const { id, rho, ux, uy, bar } = e.data;
+    draw(e.data.id, e.data.rho, e.data.ux, e.data.uy, e.data.speed2);
+}
 setup()

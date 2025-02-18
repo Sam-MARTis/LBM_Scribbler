@@ -239,7 +239,7 @@ const offsetX = (canvas.width - width * DRAW_SCALE_X) / 2;
 // const offsetY = (canvas.height - height * DRAW_SCALE_X) / 2;
 const offsetY = 0;
 const draw = (id, rho, ux, uy, speed2) => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    //   ctx.clearRect(0, 0, canvas.width, canvas.height);
     const actualOffset = offsetY + id * height * DRAW_SCALE_X;
     for (let x = 2; x < width - 2; x++) {
         for (let y = 2; y < height - 10; y++) {
@@ -392,6 +392,10 @@ const setup = () => {
     worker2.postMessage({ id: 1, viscosity, height, width, CALC_DRAW_RATIO, u0, n0, nN, nS, nE, nW, nNE, nNW, nSE, nSW, bar, rho, ux, uy, speed2 });
 };
 worker1.onmessage = (e) => {
+    // const { id, rho, ux, uy, bar } = e.data;
+    draw(e.data.id, e.data.rho, e.data.ux, e.data.uy, e.data.speed2);
+};
+worker2.onmessage = (e) => {
     // const { id, rho, ux, uy, bar } = e.data;
     draw(e.data.id, e.data.rho, e.data.ux, e.data.uy, e.data.speed2);
 };
