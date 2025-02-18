@@ -1,7 +1,8 @@
 "use strict";
 const canvas = document.getElementById("projectCanvas");
+const NoOfWorkers = 10;
 canvas.width = window.innerWidth * devicePixelRatio;
-canvas.height = window.innerHeight * devicePixelRatio;
+canvas.height = window.innerHeight * devicePixelRatio * NoOfWorkers;
 const ctx = canvas.getContext("2d");
 const height = 100;
 const width = 200;
@@ -12,7 +13,7 @@ const u0 = 0.2 / multiplier;
 const four9ths = 4. / 9.;
 const one9th = 1. / 9.;
 const one36th = 1. / 36.;
-const CALC_DRAW_RATIO = 4;
+const CALC_DRAW_RATIO = 3;
 const DRAW_SCALE_X = 1 * canvas.width / width;
 const maxSpeed = 0.4;
 let n0 = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
@@ -234,7 +235,6 @@ const removeWall = (x, y) => {
 };
 const handleBoundaries = () => {
 };
-const NoOfWorkers = 2;
 const offsetX = (canvas.width - width * DRAW_SCALE_X) / 2;
 // const offsetY = (canvas.height - height * DRAW_SCALE_X) / 2;
 const offsetY = 0;
@@ -385,18 +385,30 @@ console.log();
 // drawCircleBarrier(7,90)"Initialization took", performance.now()-time, "ms")
 time = performance.now();
 // tick()
-const worker1 = new Worker("worker1.js");
-const worker2 = new Worker("worker1.js");
+const workers = [];
+// Start the loop from i = 0 so workers are correctly pushed into the array.
+for (let i = 0; i < NoOfWorkers; i++) {
+    workers.push(new Worker("worker1.js"));
+}
 const setup = () => {
-    worker1.postMessage({ id: 0, viscosity, height, width, CALC_DRAW_RATIO, u0, n0, nN, nS, nE, nW, nNE, nNW, nSE, nSW, bar, rho, ux, uy, speed2 });
-    worker2.postMessage({ id: 1, viscosity, height, width, CALC_DRAW_RATIO, u0, n0, nN, nS, nE, nW, nNE, nNW, nSE, nSW, bar, rho, ux, uy, speed2 });
+    // Send messages to all workers, including worker1 and worker2
+    for (let i = 0; i < NoOfWorkers; i++) {
+        workers[i].postMessage({
+            id: i,
+            viscosity,
+            height,
+            width,
+            CALC_DRAW_RATIO,
+            u0, n0, nN, nS, nE, nW,
+            nNE, nNW, nSE, nSW,
+            bar, rho, ux, uy, speed2
+        });
+    }
 };
-worker1.onmessage = (e) => {
-    // const { id, rho, ux, uy, bar } = e.data;
-    draw(e.data.id, e.data.rho, e.data.ux, e.data.uy, e.data.speed2);
-};
-worker2.onmessage = (e) => {
-    // const { id, rho, ux, uy, bar } = e.data;
-    draw(e.data.id, e.data.rho, e.data.ux, e.data.uy, e.data.speed2);
-};
+// Attach the onmessage handler for each worker in the array
+for (let i = 0; i < NoOfWorkers; i++) {
+    workers[i].onmessage = (e) => {
+        draw(e.data.id, e.data.rho, e.data.ux, e.data.uy, e.data.speed2);
+    };
+}
 setup();

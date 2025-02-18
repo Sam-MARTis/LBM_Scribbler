@@ -267,7 +267,7 @@ onmessage = function (e) {
       postMessage({ id, rho, ux, uy, speed2 });
     }
     j++
-    // console.log("Completed a loop: ", j)
+    console.log("Completed a loop: ", j)
     this.requestAnimationFrame(tick);
 
   }
