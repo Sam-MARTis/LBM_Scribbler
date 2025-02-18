@@ -263,7 +263,6 @@ onmessage = function (e) {
     };
     // drawBlock(5, 15, 25, 25);
     const drawId = (k) => {
-        k = e.data.id;
         if (k == 10) {
             drawBlock(15, 1, 20, 42);
         }
@@ -302,6 +301,8 @@ onmessage = function (e) {
             drawPacman();
         }
     };
+    drawId(e.data.id);
+    ;
     let j = 1;
     const tick = () => {
         stream();
