@@ -16,6 +16,8 @@ const one36th = 1. / 36.
 const CALC_DRAW_RATIO = 10
 const DRAW_SCALE_X = 1 * canvas.width / width
 const maxSpeed = 0.4;
+const functionArguments = new Float32Array(5);
+
 let n0 = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT))
 let nN = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT))
 let nS = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT))
@@ -427,14 +429,6 @@ const drawinvertedramp = (ramp_H:number, pos_X_ramp:number, pos_Y_ramp:number): 
 drawCircleBarrier(10,35)
 // drawinvertedramp(8,25,50)
 
-
-
-
-
-
-
-
-
 let isDrawing = false; 
 
 const getMousePosition = (e:MouseEvent) => {
@@ -515,7 +509,7 @@ const setup = async () => {
             CALC_DRAW_RATIO, 
             u0, n0, nN, nS, nE, nW, 
             nNE, nNW, nSE, nSW, 
-            bar, rho, ux, uy, speed2
+            bar, rho, ux, uy, speed2, functionArguments
         });
         await new Promise((resolve) => setTimeout(resolve, 50));
     }
