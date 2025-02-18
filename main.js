@@ -531,7 +531,7 @@ multiSimCHeckbox.addEventListener("change", function () {
 });
 const createWebWorkerSims = (IDsToUse) => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    canvas.height = window.innerHeight * devicePixelRatio * IDsToUse.length * 1.05;
+    canvas.height = window.innerHeight * devicePixelRatio * IDsToUse.length * 1.1;
     for (let i = 0; i < workers.length; i++) {
         workers[i].terminate();
     }
@@ -562,7 +562,7 @@ const createWebWorkerSims = (IDsToUse) => {
 document.addEventListener('keydown', (e) => {
     if (e.key === 'r') {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        canvas.height = window.innerHeight * devicePixelRatio * 1.05;
+        canvas.height = window.innerHeight * devicePixelRatio * 1.1;
         cancelAnimationFrame(animVal);
         console.log('Submit button clicked');
         IDsToUse = [];
@@ -571,7 +571,7 @@ document.addEventListener('keydown', (e) => {
             IDsToUse.push(parseInt(checkbox.id)); // Push the checked checkbox's id
         });
         console.log('Selected IDs:', IDsToUse);
-        canvas.height = window.innerHeight * devicePixelRatio * IDsToUse.length;
+        canvas.height = window.innerHeight * devicePixelRatio * IDsToUse.length * 1.1;
         createWebWorkerSims(IDsToUse);
     }
 });
@@ -586,7 +586,7 @@ submitBtn.addEventListener('click', () => {
         IDsToUse.push(parseInt(checkbox.id)); // Push the checked checkbox's id
     });
     console.log('Selected IDs:', IDsToUse);
-    canvas.height = window.innerHeight * devicePixelRatio * IDsToUse.length;
+    canvas.height = window.innerHeight * devicePixelRatio * IDsToUse.length * 1.1;
     createWebWorkerSims(IDsToUse);
 });
 viscositySlider.addEventListener("input", () => {
