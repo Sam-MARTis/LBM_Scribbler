@@ -1,4 +1,5 @@
 const canvas = document.getElementById("projectCanvas") as HTMLCanvasElement;
+const NoOfWorkers = 10;
 canvas.width = window.innerWidth * devicePixelRatio;
 canvas.height = window.innerHeight * devicePixelRatio;
 const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
@@ -6,14 +7,17 @@ const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 const height = 100
 const width = 200
 const multiplier = 1.5
-let viscosity = 0.005 * multiplier
+let viscosity = 0.01 * multiplier
 let omega = 1 / (3 * viscosity + 0.5)
 const u0 = 0.2 / multiplier
 const four9ths = 4. / 9.
 const one9th = 1. / 9.
 const one36th = 1. / 36.
-const CALC_DRAW_RATIO = 15
+const CALC_DRAW_RATIO = 10
 const DRAW_SCALE_X = 1 * canvas.width / width
+const maxSpeed = 0.4;
+const functionArguments = new Float32Array(5);
+
 let n0 = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT))
 let nN = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT))
 let nS = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT))
@@ -42,10 +46,10 @@ plotSelect.addEventListener("change", () => {
 
 let paused = false;
 
-let animVal: number | null = null;
-const but1 = document.getElementById("but1") as HTMLButtonElement;
+let animVal: number = 0;
+const playPauseButton = document.getElementById("but1") as HTMLButtonElement;
 
-but1.addEventListener("click", () => {
+playPauseButton.addEventListener("click", () => {
     paused = !paused;  // Toggle the paused state
     if (!paused) {
         // Resume the animation
@@ -56,16 +60,9 @@ but1.addEventListener("click", () => {
             cancelAnimationFrame(animVal);
         }
     }
-});
 
-const viscositySlider = document.getElementById("viscositySlider") as HTMLInputElement;
 
-// Add an event listener to detect changes in the slider
-viscositySlider.addEventListener("input", () => {
-    // Update the viscosity variable to the slider's current value
-    viscosity = parseFloat(viscositySlider.value) * multiplier;
-    omega = 1 / (3 * viscosity + 0.5)
-    // console.log(`Viscosity updated to: ${viscosity}`);
+
 });
 
 
@@ -115,7 +112,20 @@ const stream = () => {
         nS[(height - y - 1) * width + x] = nS[(height - y - 1 - 1) * width + x]
     }
 }
+const ensureStability = () => {
+    for(let i = 0; i<height*width; i++){
+        n0[i] = n0[1]>maxSpeed? maxSpeed: n0[i]
+        nN[i] = nN[1]>maxSpeed? maxSpeed: nN[i]
+        nS[i] = nS[1]>maxSpeed? maxSpeed: nS[i]
+        nE[i] = nE[1]>maxSpeed? maxSpeed: nE[i]
+        nW[i] = nW[1]>maxSpeed? maxSpeed: nW[i]
+        nNE[i] = nNE[1]>maxSpeed? maxSpeed: nNE[i]
+        nNW[i] = nNW[1]>maxSpeed? maxSpeed: nNW[i]
+        nSE[i] = nSE[1]>maxSpeed? maxSpeed: nSE[i]
+        nSW[i] = nSW[1]>maxSpeed? maxSpeed: nSW[i]
 
+    }
+}
 const bounce = () => {
 
 
@@ -253,6 +263,7 @@ const collide = () => {
 //         xcoord = (xcoord+1) if xcoord<(width-1) else 0
 //         ycoord = ycoord if (xcoord != 0) else (ycoord + 1)
 
+
 const initialize = (u0: number = 0.1) => {
     let xcoord = 0
     let ycoord = 0
@@ -289,10 +300,14 @@ const handleBoundaries = () => {
 
 }
 
+
 const offsetX = (canvas.width - width * DRAW_SCALE_X) / 2;
-const offsetY = (canvas.height - height * DRAW_SCALE_X) / 2;
-const draw = () => {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+// const offsetY = (canvas.height - height * DRAW_SCALE_X) / 2;
+const offsetY = 0
+const draw = (id: number, rho:Float32Array, ux:Float32Array, uy: Float32Array, speed2: Float32Array) => {
+//   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const actualOffset = offsetY + id*height*DRAW_SCALE_X
+  
 
   for (let x = 2; x < width - 2; x++) {
       for (let y = 2; y < height - 10; y++) {
@@ -300,7 +315,7 @@ const draw = () => {
 
             if (bar[i]) {
                 ctx.fillStyle = "black";
-                ctx.fillRect(offsetX + x * DRAW_SCALE_X, offsetY + y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
+                ctx.fillRect(offsetX + x * DRAW_SCALE_X, actualOffset + y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
             } else {
                 let c = 0;
                 switch (plotOption) {
@@ -328,35 +343,11 @@ const draw = () => {
                 }
                 // const c = 3000 * (uy[x + 1 + y * width] - uy[x - 1 + y * width] - ux[x + (y + 1) * width] + ux[x + (y - 1) * width]);
                 // ctx.fillStyle = `rgb(${Math.max(0, c)}, ${0}, ${Math.max(0, -c)})`;
-                ctx.fillRect(offsetX + x * DRAW_SCALE_X, offsetY + y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
+                ctx.fillRect(offsetX + x * DRAW_SCALE_X, actualOffset + y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
             }
         }
     }
 };
-// let isDrawing = false; 
-
-// const getMousePosition = (e:MouseEvent) => {
-//     const rect = canvas.getBoundingClientRect();
-//     const posX = Math.floor((e.clientX - rect.left - offsetX) / DRAW_SCALE_X);
-//     const posY = height + Math.floor((e.clientY - rect.top) / DRAW_SCALE_X);
-//     console.log(e.clientX, e.clientY, rect.left, rect.top, offsetX, offsetY, posX, posY)
-
-//     // Ensure the clicked position is within valid bounds
-//     if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
-//         createWall(posX, posY);
-//     }
-// });
-
-
-// canvas.addEventListener("mouseup", () => {
-//     isDrawing = false;
-// });
-
-
-// canvas.addEventListener("mouseleave", () => {
-//     isDrawing = false;
-// });
-
 
 
 let time = performance.now();
@@ -371,11 +362,11 @@ const tick = () => {
         bounce()
         collide()
     }
-    draw()
+    // ensureStability()   
+    draw(0, rho, ux, uy, speed2)
     animVal = requestAnimationFrame(tick)
     const newTime = performance.now()
-    // console.log("Simulation took", newTime-time, "ms")
-    // console.log("n0[4000]: ", n0[4000])
+
     time = newTime
 
 }
@@ -383,13 +374,7 @@ const tick = () => {
 
 
 initialize(u0)
-// const wallSize = Math.floor(height/5)
-// const wallSize = 10
-// for(let j = Math.floor((height/2)-wallSize/2)-1; j<(height/2)+wallSize/2; j++){
-//     createWall(20, j)
-// }
 
-// creat block
 const drawBlock =(Block_Height:number,Block_width:number, pos_X_block:number, pos_Y_block:number):void =>{
     for(let i = pos_X_block; i<pos_X_block+Block_width; i++){
         for(let j = Math.floor(Math.abs((pos_Y_block)-Block_Height/2))-1; j<(pos_Y_block)+Block_Height/2; j++){
@@ -410,7 +395,7 @@ const drawCircleBarrier = (radius: number, pos_X: number): void => {
         }
     }
 }
-drawCircleBarrier(5, 60)
+// drawCircleBarrier(5, 60)
 // drawCircleBarrier(7,90)
 
 // creat ramp but ..
@@ -441,8 +426,9 @@ const drawinvertedramp = (ramp_H:number, pos_X_ramp:number, pos_Y_ramp:number): 
     }
 }
 
-// drawCircleBarrier(10,35)
+drawCircleBarrier(10,35)
 // drawinvertedramp(8,25,50)
+
 let isDrawing = false; 
 
 const getMousePosition = (e:MouseEvent) => {
@@ -455,6 +441,9 @@ const getMousePosition = (e:MouseEvent) => {
 canvas.addEventListener("mousedown", (e) => {
     isDrawing = true;
     const { posX, posY } = getMousePosition(e);
+    if(multiSimCHeckbox.checked){
+        return;
+    }
 
  
     if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
@@ -464,6 +453,9 @@ canvas.addEventListener("mousedown", (e) => {
 
 canvas.addEventListener("mousemove", (e) => {
     if (!isDrawing) return;  //
+    if(multiSimCHeckbox.checked){
+        return;
+    }
 
     const { posX, posY } = getMousePosition(e);
 
@@ -496,4 +488,209 @@ canvas.addEventListener("mouseleave", () => {
 console.log()
 // drawCircleBarrier(7,90)"Initialization took", performance.now()-time, "ms")
 time = performance.now()
+// tick()
+let workers: Worker[] = [];
+
+// Start the loop from i = 0 so workers are correctly pushed into the array.
+for (let i = 0; i < NoOfWorkers; i++) {
+    workers.push(new Worker("worker1.js"));
+}
+
+
+const setup = async () => {
+    // Send messages to all workers, including worker1 and worker2
+    for (let i = 0; i < NoOfWorkers; i++) {
+        workers[i].postMessage({
+            messageType: "initialize",
+            id: i, 
+            viscosity, 
+            height, 
+            width, 
+            CALC_DRAW_RATIO, 
+            u0, n0, nN, nS, nE, nW, 
+            nNE, nNW, nSE, nSW, 
+            bar, rho, ux, uy, speed2, functionArguments
+        });
+        await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+};
+const constUpdateViscosity = () => {
+    for (let i = 0; i < NoOfWorkers; i++) {
+        workers[i].postMessage({
+            messageType: "updateViscosity",
+            viscosity
+        });
+    }
+}
+
+// Attach the onmessage handler for each worker in the array
+for (let i = 0; i < NoOfWorkers; i++) {
+    workers[i].onmessage = (e) => {
+        draw(e.data.id, e.data.rho, e.data.ux, e.data.uy, e.data.speed2);
+    };
+}
+
+let IDsToUse: number[] = [];
+
+
+const viscositySlider = document.getElementById("viscositySlider") as HTMLInputElement;
+const multiSimCHeckbox = document.getElementById("multiSimCheckbox") as HTMLInputElement;
+const multiSimControls = document.getElementById('multiSimControls') as HTMLElement;
+const checkboxesContainer = document.getElementById('checkboxes') as HTMLElement;
+const submitBtn = document.getElementById('submitBtn') as HTMLElement;
+multiSimCHeckbox.addEventListener("change", function () {
+
+    // If the checkbox is checked, disable the viscosity slider
+    if (this.checked) {
+        cancelAnimationFrame(animVal);
+        bar = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT))
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        viscositySlider.disabled = true;
+        playPauseButton.disabled = true;
+        multiSimControls.style.display = 'flex';
+        // Create checkboxes dynamically
+        checkboxesContainer.innerHTML = ''; // Clear previous checkboxes if any
+        for (let i = 1; i <= 10; i++) {
+            const checkboxWrapper = document.createElement('div');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `${i}`;
+            const label = document.createElement('label');
+            label.setAttribute('for', checkbox.id);
+            // label.textContent = `name${i}`;
+            if(i === 1){
+                label.textContent = `Pacman`;
+            }
+            if(i === 2){
+                label.textContent = `Horizontal Rectangle`;
+            }
+            if(i === 3){
+                label.textContent = `Vertical Rectangle`;
+            }
+            if(i === 4){
+                label.textContent = `Small Circle`;
+            }
+            if(i === 5){
+                label.textContent = `Big Circle`;
+            }
+            if(i === 6){
+                label.textContent = `Multi Bump`;
+            }
+            if(i === 7){
+                label.textContent = `Ramp`;
+            }
+            if(i === 8){
+                label.textContent = `Multi Ramp`;
+            }
+            if(i === 9){
+                label.textContent = `Inverted Ramp`;
+            }
+            if(i === 10){
+                label.textContent = `Vertical Line`;
+            }
+            
+            checkboxWrapper.appendChild(checkbox);
+            checkboxWrapper.appendChild(label);
+            checkboxesContainer.appendChild(checkboxWrapper);
+        }
+        for(let i = 0; i<workers.length; i++){
+           workers[i].terminate();
+        }
+        for(let i = 0; i<IDsToUse.length; i++){
+            workers.push(new Worker("worker1.js"));
+            workers[i].postMessage({
+                messageType: "initialize",
+                posId: i,
+                id: IDsToUse[i], 
+                viscosity, 
+                height, 
+                width, 
+                CALC_DRAW_RATIO, 
+                u0, n0, nN, nS, nE, nW, 
+                nNE, nNW, nSE, nSW, 
+                bar, rho, ux, uy, speed2
+            });
+        }
+
+
+    } else {
+        canvas.height = window.innerHeight * devicePixelRatio
+        viscositySlider.disabled = false;
+        playPauseButton.disabled = false
+        multiSimControls.style.display = 'none';
+        drawCircleBarrier(10,35)
+        
+        tick();
+    }
+});
+
+
+
+const createWebWorkerSims = (IDsToUse: number[]) => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.height = window.innerHeight * devicePixelRatio*IDsToUse.length*1.5;
+    for (let i = 0; i < workers.length; i++) {
+        workers[i].terminate();
+    }
+    workers = [];
+    for (let i = 0; i < IDsToUse.length; i++) {
+        workers.push(new Worker("worker1.js"));
+    }
+    for (let i = 0; i < IDsToUse.length; i++) {
+        workers[i].postMessage({
+            messageType: "initialize",
+            posId: i,
+            id: IDsToUse[i], 
+            viscosity, 
+            height, 
+            width, 
+            CALC_DRAW_RATIO, 
+            u0, n0, nN, nS, nE, nW, 
+            nNE, nNW, nSE, nSW, 
+            bar, rho, ux, uy, speed2
+        });
+    }
+    for(let i = 0; i<workers.length; i++){
+        workers[i].onmessage = (e) => {
+            draw(e.data.posId, e.data.rho, e.data.ux, e.data.uy, e.data.speed2);
+        };
+    }
+}
+
+
+        // Handle form submission
+submitBtn.addEventListener('click', () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    cancelAnimationFrame(animVal);
+    console.log('Submit button clicked');
+    IDsToUse = [];
+    const checkboxes = checkboxesContainer.querySelectorAll('input[type="checkbox"]:checked');
+    checkboxes.forEach(checkbox => {
+        IDsToUse.push(parseInt(checkbox.id)); // Push the checked checkbox's id
+    });
+    console.log('Selected IDs:', IDsToUse);
+    canvas.height = window.innerHeight * devicePixelRatio*IDsToUse.length;
+            createWebWorkerSims(IDsToUse);
+});
+
+
+viscositySlider.addEventListener("input", () => {
+    // Update the viscosity variable to the slider's current value
+    viscosity = parseFloat(viscositySlider.value) * multiplier;
+    omega = 1 / (3 * viscosity + 0.5);
+    // for (let i = 0; i < NoOfWorkers; i++) {
+    //     workers[i].postMessage({
+    //         messageType: "updateViscosity",
+    //         viscosity
+    //     });
+    // }
+    // console.log(`Viscosity updated to: ${viscosity}`);
+});
+
 tick()
+
+// setup()
+// workers = []
+// for (let i = 0; i < NoOfWorkers; i++) {
+//     workers[i].terminate();
+// }

@@ -17,7 +17,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            height: 30vh;
         }
         .header {
             margin-bottom: 20px;
@@ -31,6 +31,7 @@
             justify-content: center;
             gap: 20px;
             margin-bottom: 20px;
+            flex-wrap: wrap;  /* Allows wrapping */
         }
         .controls label {
             font-weight: 500;
@@ -61,6 +62,22 @@
             display: block;
             margin: 0 auto;
         }
+        .warning {
+            color: #ffcc00;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            text-align: center;
+        }
+        button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+        .multiSimControls {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -79,14 +96,34 @@
                 </select>
             </label>
             <label for="viscositySlider">Viscosity: 
-                <input type="range" id="viscositySlider" min="0.003" max="0.1" step="0.001" value="0.04">
+                <input type="range" id="viscositySlider" min="0.003" max="0.1" step="0.001" value="0.015">
+            </label>
+            <!-- Checkbox for multi-simulation -->
+            <label for="multiSimCheckbox">
+                <input type="checkbox" id="multiSimCheckbox">
+                Simulate Multiple Systems
             </label>
             <!-- Button next to the slider -->
             <button id="but1">Start/Pause</button>
         </div>
-        <canvas id="projectCanvas"></canvas>
-    </div>
 
-    <script src="main.js"></script>
+        <!-- Multi-sim checkboxes and submit button -->
+        <div class="multiSimControls" id="multiSimControls">
+            <div id="checkboxes">
+                <!-- Checkboxes will be inserted here -->
+            </div>
+            <button id="submitBtn">Submit</button>
+        </div>
+
+        <!-- Warning about CPU intensity -->
+        <div class="warning">
+            Warning: Simulating multiple systems can be CPU intensive.
+        </div>
+    </div>
+    <canvas id="projectCanvas"></canvas>
+
+    <script src="main.js">
+        
+    </script>
 </body>
 </html>
