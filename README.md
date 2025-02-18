@@ -4,7 +4,9 @@ Try the demo here: [https://sam-martis.github.io/LBM_Scribbler/](https://sam-mar
 
 Our project is an interactive fluid simulation that allows users to visualize and control fluid dynamics in real time through a web-based interface. The simulation is built using HTML, CSS, and JavaScript, with Web Workers for efficient computations and interactive controls for adjusting fluid properties.
 
-![alt text](ImageDemo.png)
+![X Velocity Demonstration](x_velocity_demonstration.png)
+![Density Demonstration](density_demonstration.png)
+![Curl Demonstration](curl_demonstration.png)
 
 ## Key Features
 
@@ -20,6 +22,7 @@ Our project is an interactive fluid simulation that allows users to visualize an
 - *Canvas API:* Used for rendering fluid effects
 - *Web Workers:* Parallel processing for smooth fluid dynamics
 - *GitHub Integration:* Hosting and version control
+
 # Introduction to the Lattice Boltzmann Method (LBM)
 
 Imagine trying to understand how water flows around rocks in a river or how air moves over an airplane wing. These are complex problems, but they’re exactly the kind of challenges that the Lattice Boltzmann Method (LBM) helps us to tackle. LBM is a way to simulate fluid flow using computers. Unlike traditional methods that rely on solving complicated equations like the Navier-Stokes equations directly, LBM takes a more intuitive approach. It models fluids as if they were made up of tiny particles moving around on a grid. This makes it easier to simulate tricky situations like turbulence, flows with multiple phases (like oil and water mixing), or even how fluids behave when they encounter obstacles.
