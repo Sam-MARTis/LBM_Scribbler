@@ -22,6 +22,9 @@ onmessage = function (e) {
   const flatten2D = (i: number, j: number): number => {
     return j * width + i;
   };
+  const D_Square = (x1: number, y1: number, x2: number, y2: number): number => {
+    return ((x1 - x2) * (x1 - x2)) + ((y1 - y2) * (y1 - y2))
+}
   let animationFrameId: number = 0;
   const four9ths = 4 / 9;
   const one9th = 1 / 9;
@@ -29,6 +32,7 @@ onmessage = function (e) {
 
   const {
     id,
+    posId,
     viscosity,
     height,
     width,

@@ -557,7 +557,13 @@ multiSimCHeckbox.addEventListener("change", function () {
             checkbox.id = `${i}`;
             const label = document.createElement('label');
             label.setAttribute('for', checkbox.id);
-            label.textContent = `name${i}`;
+            // label.textContent = `name${i}`;
+            if(i === 1){
+                label.textContent = `Pacman`;
+            }
+            if(i === 2){
+                label.textContent = `Circle`;
+            }
             checkboxWrapper.appendChild(checkbox);
             checkboxWrapper.appendChild(label);
             checkboxesContainer.appendChild(checkboxWrapper);
@@ -597,6 +603,7 @@ multiSimCHeckbox.addEventListener("change", function () {
 
 const createWebWorkerSims = (IDsToUse: number[]) => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.height = window.innerHeight * devicePixelRatio*IDsToUse.length*1.5;
     for (let i = 0; i < workers.length; i++) {
         workers[i].terminate();
     }

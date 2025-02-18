@@ -22,11 +22,14 @@ onmessage = function (e) {
     const flatten2D = (i, j) => {
         return j * width + i;
     };
+    const D_Square = (x1, y1, x2, y2) => {
+        return ((x1 - x2) * (x1 - x2)) + ((y1 - y2) * (y1 - y2));
+    };
     let animationFrameId = 0;
     const four9ths = 4 / 9;
     const one9th = 1 / 9;
     const one36th = 1 / 36;
-    const { id, viscosity, height, width, CALC_DRAW_RATIO, u0, n0, nN, nS, nE, nW, nNW, nNE, nSE, nSW, bar, rho, ux, uy, speed2, functionArguments } = e.data;
+    const { id, posId, viscosity, height, width, CALC_DRAW_RATIO, u0, n0, nN, nS, nE, nW, nNW, nNE, nSE, nSW, bar, rho, ux, uy, speed2, functionArguments } = e.data;
     const omega = 1 / (3 * viscosity + 0.5);
     const stream = () => {
         // for x in range(0, width-1):
