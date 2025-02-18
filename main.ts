@@ -538,11 +538,24 @@ const multiSimCHeckbox = document.getElementById("multiSimCheckbox") as HTMLInpu
 const multiSimControls = document.getElementById('multiSimControls') as HTMLElement;
 const checkboxesContainer = document.getElementById('checkboxes') as HTMLElement;
 const submitBtn = document.getElementById('submitBtn') as HTMLElement;
+const disclaimer = document.getElementById('disclaimer') as HTMLElement;
+
+// Function to show the disclaimer
+function showDisclaimer() {
+    disclaimer.innerText = 'Click "r" to submit'; // Show disclaimer
+}
+
+// Function to hide the disclaimer
+function hideDisclaimer() {
+    disclaimer.innerText = ''; // Hide disclaimer
+}
+
 multiSimCHeckbox.addEventListener("change", function () {
 
     // If the checkbox is checked, disable the viscosity slider
     if (this.checked) {
         cancelAnimationFrame(animVal);
+        showDisclaimer();
         bar = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT))
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         viscositySlider.disabled = true;
@@ -615,6 +628,7 @@ multiSimCHeckbox.addEventListener("change", function () {
 
     } else {
         canvas.height = window.innerHeight * devicePixelRatio
+        hideDisclaimer();
         viscositySlider.disabled = false;
         playPauseButton.disabled = false
         multiSimControls.style.display = 'none';
@@ -628,7 +642,7 @@ multiSimCHeckbox.addEventListener("change", function () {
 
 const createWebWorkerSims = (IDsToUse: number[]) => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    canvas.height = window.innerHeight * devicePixelRatio*IDsToUse.length*1.5;
+    canvas.height = window.innerHeight * devicePixelRatio*IDsToUse.length*1.05;
     for (let i = 0; i < workers.length; i++) {
         workers[i].terminate();
     }
@@ -657,7 +671,22 @@ const createWebWorkerSims = (IDsToUse: number[]) => {
     }
 }
 
-
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'r') {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        canvas.height = window.innerHeight * devicePixelRatio*1.05;
+        cancelAnimationFrame(animVal);
+        console.log('Submit button clicked');
+        IDsToUse = [];
+        const checkboxes = checkboxesContainer.querySelectorAll('input[type="checkbox"]:checked');
+        checkboxes.forEach(checkbox => {
+            IDsToUse.push(parseInt(checkbox.id)); // Push the checked checkbox's id
+        });
+        console.log('Selected IDs:', IDsToUse);
+        canvas.height = window.innerHeight * devicePixelRatio*IDsToUse.length;
+        createWebWorkerSims(IDsToUse);
+    }
+});
         // Handle form submission
 submitBtn.addEventListener('click', () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);

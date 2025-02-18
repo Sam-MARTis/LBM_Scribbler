@@ -78,6 +78,13 @@
             gap: 10px;
             margin-top: 20px;
         }
+        #checkboxes {
+            display: grid;
+            grid-template-columns: repeat(3, auto); /* Three columns of checkboxes */
+            gap: 10px; /* Space between checkboxes */
+        }
+
+        
     </style>
 </head>
 <body>
@@ -106,19 +113,25 @@
             <!-- Button next to the slider -->
             <button id="but1">Start/Pause</button>
         </div>
+        <div class="disclaimer" id="disclaimer" >
+        </div>
 
         <!-- Multi-sim checkboxes and submit button -->
         <div class="multiSimControls" id="multiSimControls">
             <div id="checkboxes">
                 <!-- Checkboxes will be inserted here -->
             </div>
-            <button id="submitBtn">Submit</button>
+            <button id="submitBtn" style="display: none;">Submit</button>
         </div>
 
         <!-- Warning about CPU intensity -->
         <div class="warning">
             Warning: Simulating multiple systems can be CPU intensive.
         </div>
+
+<!-- Disclaimer (initially hidden) -->
+
+
     </div>
     <canvas id="projectCanvas"></canvas>
 
