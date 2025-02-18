@@ -14,6 +14,7 @@ const one9th = 1. / 9.
 const one36th = 1. / 36.
 const CALC_DRAW_RATIO = 15
 const DRAW_SCALE_X = 1 * canvas.width / width
+const maxSpeed = 0.4;
 let n0 = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT))
 let nN = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT))
 let nS = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT))
@@ -45,18 +46,18 @@ let paused = false;
 let animVal: number | null = null;
 const but1 = document.getElementById("but1") as HTMLButtonElement;
 
-but1.addEventListener("click", () => {
-    paused = !paused;  // Toggle the paused state
-    if (!paused) {
-        // Resume the animation
-        tick();
-    } else {
-        // Pause the animation by canceling the next frame
-        if (animVal !== null) {
-            cancelAnimationFrame(animVal);
-        }
-    }
-});
+// but1.addEventListener("click", () => {
+//     paused = !paused;  // Toggle the paused state
+//     if (!paused) {
+//         // Resume the animation
+//         tick();
+//     } else {
+//         // Pause the animation by canceling the next frame
+//         if (animVal !== null) {
+//             cancelAnimationFrame(animVal);
+//         }
+//     }
+// });
 
 const viscositySlider = document.getElementById("viscositySlider") as HTMLInputElement;
 
@@ -115,7 +116,20 @@ const stream = () => {
         nS[(height - y - 1) * width + x] = nS[(height - y - 1 - 1) * width + x]
     }
 }
+const ensureStability = () => {
+    for(let i = 0; i<height*width; i++){
+        n0[i] = n0[1]>maxSpeed? maxSpeed: n0[i]
+        nN[i] = nN[1]>maxSpeed? maxSpeed: nN[i]
+        nS[i] = nS[1]>maxSpeed? maxSpeed: nS[i]
+        nE[i] = nE[1]>maxSpeed? maxSpeed: nE[i]
+        nW[i] = nW[1]>maxSpeed? maxSpeed: nW[i]
+        nNE[i] = nNE[1]>maxSpeed? maxSpeed: nNE[i]
+        nNW[i] = nNW[1]>maxSpeed? maxSpeed: nNW[i]
+        nSE[i] = nSE[1]>maxSpeed? maxSpeed: nSE[i]
+        nSW[i] = nSW[1]>maxSpeed? maxSpeed: nSW[i]
 
+    }
+}
 const bounce = () => {
 
 
@@ -253,6 +267,7 @@ const collide = () => {
 //         xcoord = (xcoord+1) if xcoord<(width-1) else 0
 //         ycoord = ycoord if (xcoord != 0) else (ycoord + 1)
 
+
 const initialize = (u0: number = 0.1) => {
     let xcoord = 0
     let ycoord = 0
@@ -291,7 +306,7 @@ const handleBoundaries = () => {
 
 const offsetX = (canvas.width - width * DRAW_SCALE_X) / 2;
 const offsetY = (canvas.height - height * DRAW_SCALE_X) / 2;
-const draw = () => {
+const draw = (rho:Float32Array, ux:Float32Array, uy: Float32Array, speed2: Float32Array) => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   for (let x = 2; x < width - 2; x++) {
@@ -333,63 +348,33 @@ const draw = () => {
         }
     }
 };
-// let isDrawing = false; 
-
-// const getMousePosition = (e:MouseEvent) => {
-//     const rect = canvas.getBoundingClientRect();
-//     const posX = Math.floor((e.clientX - rect.left - offsetX) / DRAW_SCALE_X);
-//     const posY = height + Math.floor((e.clientY - rect.top) / DRAW_SCALE_X);
-//     console.log(e.clientX, e.clientY, rect.left, rect.top, offsetX, offsetY, posX, posY)
-
-//     // Ensure the clicked position is within valid bounds
-//     if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
-//         createWall(posX, posY);
-//     }
-// });
-
-
-// canvas.addEventListener("mouseup", () => {
-//     isDrawing = false;
-// });
-
-
-// canvas.addEventListener("mouseleave", () => {
-//     isDrawing = false;
-// });
-
 
 
 let time = performance.now();
 let iterationCounter = 0;  
 
-const tick = () => {
-    if (paused) {
-        return;
-    }
-    for (let iter = 0; iter < CALC_DRAW_RATIO; iter++) {
-        stream()
-        bounce()
-        collide()
-    }
-    draw()
-    animVal = requestAnimationFrame(tick)
-    const newTime = performance.now()
-    // console.log("Simulation took", newTime-time, "ms")
-    // console.log("n0[4000]: ", n0[4000])
-    time = newTime
+// const tick = () => {
+//     if (paused) {
+//         return;
+//     }
+//     for (let iter = 0; iter < CALC_DRAW_RATIO; iter++) {
+//         stream()
+//         bounce()
+//         collide()
+//     }
+//     // ensureStability()   
+//     draw()
+//     animVal = requestAnimationFrame(tick)
+//     const newTime = performance.now()
 
-}
+//     time = newTime
+
+// }
 
 
 
 initialize(u0)
-// const wallSize = Math.floor(height/5)
-// const wallSize = 10
-// for(let j = Math.floor((height/2)-wallSize/2)-1; j<(height/2)+wallSize/2; j++){
-//     createWall(20, j)
-// }
 
-// creat block
 const drawBlock =(Block_Height:number,Block_width:number, pos_X_block:number, pos_Y_block:number):void =>{
     for(let i = pos_X_block; i<pos_X_block+Block_width; i++){
         for(let j = Math.floor(Math.abs((pos_Y_block)-Block_Height/2))-1; j<(pos_Y_block)+Block_Height/2; j++){
@@ -443,6 +428,15 @@ const drawinvertedramp = (ramp_H:number, pos_X_ramp:number, pos_Y_ramp:number): 
 
 // drawCircleBarrier(10,35)
 // drawinvertedramp(8,25,50)
+
+
+
+
+
+
+
+
+
 let isDrawing = false; 
 
 const getMousePosition = (e:MouseEvent) => {
@@ -452,48 +446,60 @@ const getMousePosition = (e:MouseEvent) => {
     return { posX, posY };
 };
 
-canvas.addEventListener("mousedown", (e) => {
-    isDrawing = true;
-    const { posX, posY } = getMousePosition(e);
+// canvas.addEventListener("mousedown", (e) => {
+//     isDrawing = true;
+//     const { posX, posY } = getMousePosition(e);
 
  
-    if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
-        createWall(posX, posY);
-    }
-});
+//     if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
+//         createWall(posX, posY);
+//     }
+// });
 
-canvas.addEventListener("mousemove", (e) => {
-    if (!isDrawing) return;  //
+// canvas.addEventListener("mousemove", (e) => {
+//     if (!isDrawing) return;  //
 
-    const { posX, posY } = getMousePosition(e);
+//     const { posX, posY } = getMousePosition(e);
 
     
-    if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
-        createWall(posX, posY);
-        createWall(posX+1, posY);
-        createWall(posX-1, posY);
-        createWall(posX, posY+1);
-        createWall(posX, posY-1);
-        createWall(posX+1, posY+1);
-        createWall(posX-1, posY-1);
-        createWall(posX+1, posY-1);
-        createWall(posX-1, posY+1);
+//     if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
+//         createWall(posX, posY);
+//         createWall(posX+1, posY);
+//         createWall(posX-1, posY);
+//         createWall(posX, posY+1);
+//         createWall(posX, posY-1);
+//         createWall(posX+1, posY+1);
+//         createWall(posX-1, posY-1);
+//         createWall(posX+1, posY-1);
+//         createWall(posX-1, posY+1);
 
-    }
-});
-
-
-canvas.addEventListener("mouseup", () => {
-    isDrawing = false;
-});
+//     }
+// });
 
 
-canvas.addEventListener("mouseleave", () => {
-    isDrawing = false;
-});
+// canvas.addEventListener("mouseup", () => {
+//     isDrawing = false;
+// });
+
+
+// canvas.addEventListener("mouseleave", () => {
+//     isDrawing = false;
+// });
 
 
 console.log()
 // drawCircleBarrier(7,90)"Initialization took", performance.now()-time, "ms")
 time = performance.now()
-tick()
+// tick()
+
+const worker1 = new Worker("worker1.js");
+const setup = () => {
+    worker1.postMessage({id: 1, viscosity, height, width, CALC_DRAW_RATIO, u0, n0, nN, nS, nE, nW, nNE, nNW, nSE, nSW, bar, rho, ux, uy, speed2 });
+
+    
+}
+worker1.onmessage = (e) => {
+    // const { id, rho, ux, uy, bar } = e.data;
+    draw(e.data.rho, e.data.ux, e.data.uy, e.data.speed2);
+};
+setup()
