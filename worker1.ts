@@ -22,33 +22,61 @@ onmessage = function (e) {
   const flatten2D = (i: number, j: number): number => {
     return j * width + i;
   };
+  let tick = (x:number) => {};
+  let animationFrameId: number = 0;
   const four9ths = 4 / 9;
   const one9th = 1 / 9;
   const one36th = 1 / 36;
+  let messageType:string;
+  
+  // Declare variables in the outer scope (before the if block)
+  let id:number, viscosity:number, height:number, width:number, CALC_DRAW_RATIO:number, u0:number, n0:Float32Array, nN:Float32Array, nS:Float32Array, nE:Float32Array, nW:Float32Array, nNW:Float32Array, nNE:Float32Array, nSE:Float32Array, nSW:Float32Array, bar:Float32Array, rho:Float32Array, ux:Float32Array, uy:Float32Array, speed2:Float32Array;
+  viscosity = 0.1;
+  u0 = 0.1;
+  let omega = 1 / (3 * viscosity + 0.5);
+  if (e.data.messageType == 'initialize') {
+    // Assign values to the variables inside the if block
+    ({
+    messageType, 
+      id,
+      viscosity,
+      height,
+      width,
+      CALC_DRAW_RATIO,
+      u0,
+      n0,
+      nN,
+      nS,
+      nE,
+      nW,
+      nNW,
+      nNE,
+      nSE,
+      nSW,
+      bar,
+      rho,
+      ux,
+      uy,
+      speed2,
+    } = e.data);
+  }else{
+    if(e.data.messageType == "updateViscosity"){
+        console.log("Old value of viscosity: ", viscosity)
+        console.log("Viscosity Updated")
+        console.log("New value of viscosity: ", e.data.viscosity)
+      viscosity = e.data.viscosity;
+      omega = 1 / (3 * viscosity + 0.5);
+      cancelAnimationFrame(animationFrameId);
+      cancelAnimationFrame(animationFrameId);
+    //   this.requestAnimationFrame(tick.bind(null, omega));
 
-  const {
-    id,
-    viscosity,
-    height,
-    width,
-    CALC_DRAW_RATIO,
-    u0,
-    n0,
-    nN,
-    nS,
-    nE,
-    nW,
-    nNW,
-    nNE,
-    nSE,
-    nSW,
-    bar,
-    rho,
-    ux,
-    uy,
-    speed2,
-  } = e.data;
-  const omega = 1 / (3 * viscosity + 0.5);
+    }
+
+  }
+  
+  // Now the variables can be accessed outside the if block as well
+  
+if (e.data.messageType == 'initialize') {
 
   const stream = () => {
     // for x in range(0, width-1):
@@ -117,7 +145,7 @@ onmessage = function (e) {
   };
 
   // def collide():
-  const collide = () => {
+  const collide = (om: number) => {
     // for x in range(1, width-1):
     //     for y in range(1, height-1):
     for (let x = 1; x < width - 1; x++) {
@@ -172,24 +200,24 @@ onmessage = function (e) {
           speed2[i] = v2;
           const v215 = 1.5 * v2;
 
-          nE[i] += omega * (one9th_rho * (1 + vx3 + 4.5 * vx2 - v215) - nE[i]);
-          nW[i] += omega * (one9th_rho * (1 - vx3 + 4.5 * vx2 - v215) - nW[i]);
-          nN[i] += omega * (one9th_rho * (1 + vy3 + 4.5 * vy2 - v215) - nN[i]);
-          nS[i] += omega * (one9th_rho * (1 - vy3 + 4.5 * vy2 - v215) - nS[i]);
+          nE[i] += om * (one9th_rho * (1 + vx3 + 4.5 * vx2 - v215) - nE[i]);
+          nW[i] += om * (one9th_rho * (1 - vx3 + 4.5 * vx2 - v215) - nW[i]);
+          nN[i] += om * (one9th_rho * (1 + vy3 + 4.5 * vy2 - v215) - nN[i]);
+          nS[i] += om * (one9th_rho * (1 - vy3 + 4.5 * vy2 - v215) - nS[i]);
           nNE[i] +=
-            omega *
+            om *
             (one36th_rho * (1 + vx3 + vy3 + 4.5 * (v2 + vxvy2) - v215) -
               nNE[i]);
           nNW[i] +=
-            omega *
+            om *
             (one36th_rho * (1 - vx3 + vy3 + 4.5 * (v2 - vxvy2) - v215) -
               nNW[i]);
           nSE[i] +=
-            omega *
+            om *
             (one36th_rho * (1 + vx3 - vy3 + 4.5 * (v2 - vxvy2) - v215) -
               nSE[i]);
           nSW[i] +=
-            omega *
+            om *
             (one36th_rho * (1 - vx3 - vy3 + 4.5 * (v2 + vxvy2) - v215) -
               nSW[i]);
 
@@ -259,17 +287,31 @@ onmessage = function (e) {
   };
   drawBlock(5, 15, 25, 25);
   let j = 1;
-  const tick = () => {
+  let animationFrameId: number;
+
+  let isAnimating = false;
+
+  const tick = (om: number) => {
+    if (!isAnimating) {
+      isAnimating = true;
+      animationFrameId = requestAnimationFrame(() => tick(om)); // start the loop
+    }
+  
     stream();
     bounce();
-    collide();
+    collide(om);
+  
     if (j % CALC_DRAW_RATIO == 0) {
       postMessage({ id, rho, ux, uy, speed2 });
     }
-    j++
-    console.log("Completed a loop: ", j)
-    this.requestAnimationFrame(tick);
-
-  }
-  tick();
+    console.log(j, om);
+  
+    j++;
+    isAnimating = false;
+  };
+  
+  tick(omega);
+  
+  
+}
 };

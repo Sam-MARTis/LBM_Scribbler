@@ -1,5 +1,5 @@
 const canvas = document.getElementById("projectCanvas") as HTMLCanvasElement;
-const NoOfWorkers = 10;
+const NoOfWorkers = 1;
 canvas.width = window.innerWidth * devicePixelRatio;
 canvas.height = window.innerHeight * devicePixelRatio*NoOfWorkers;
 const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
@@ -13,7 +13,7 @@ const u0 = 0.2 / multiplier
 const four9ths = 4. / 9.
 const one9th = 1. / 9.
 const one36th = 1. / 36.
-const CALC_DRAW_RATIO = 3
+const CALC_DRAW_RATIO = 10
 const DRAW_SCALE_X = 1 * canvas.width / width
 const maxSpeed = 0.4;
 let n0 = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT))
@@ -59,16 +59,6 @@ const but1 = document.getElementById("but1") as HTMLButtonElement;
 //         }
 //     }
 // });
-
-const viscositySlider = document.getElementById("viscositySlider") as HTMLInputElement;
-
-// Add an event listener to detect changes in the slider
-viscositySlider.addEventListener("input", () => {
-    // Update the viscosity variable to the slider's current value
-    viscosity = parseFloat(viscositySlider.value) * multiplier;
-    omega = 1 / (3 * viscosity + 0.5)
-    // console.log(`Viscosity updated to: ${viscosity}`);
-});
 
 
 const flatten2D = (i: number, j: number): number => {
@@ -503,10 +493,12 @@ for (let i = 0; i < NoOfWorkers; i++) {
     workers.push(new Worker("worker1.js"));
 }
 
-const setup = () => {
+
+const setup = async () => {
     // Send messages to all workers, including worker1 and worker2
     for (let i = 0; i < NoOfWorkers; i++) {
         workers[i].postMessage({
+            messageType: "initialize",
             id: i, 
             viscosity, 
             height, 
@@ -516,8 +508,17 @@ const setup = () => {
             nNE, nNW, nSE, nSW, 
             bar, rho, ux, uy, speed2
         });
+        await new Promise((resolve) => setTimeout(resolve, 50));
     }
 };
+const constUpdateViscosity = () => {
+    for (let i = 0; i < NoOfWorkers; i++) {
+        workers[i].postMessage({
+            messageType: "updateViscosity",
+            viscosity
+        });
+    }
+}
 
 // Attach the onmessage handler for each worker in the array
 for (let i = 0; i < NoOfWorkers; i++) {
@@ -525,5 +526,25 @@ for (let i = 0; i < NoOfWorkers; i++) {
         draw(e.data.id, e.data.rho, e.data.ux, e.data.uy, e.data.speed2);
     };
 }
+
+
+
+
+const viscositySlider = document.getElementById("viscositySlider") as HTMLInputElement;
+
+// Add an event listener to detect changes in the slider
+viscositySlider.addEventListener("input", () => {
+    // Update the viscosity variable to the slider's current value
+    viscosity = parseFloat(viscositySlider.value) * multiplier;
+    // omega = 1 / (3 * viscosity + 0.5);
+    for (let i = 0; i < NoOfWorkers; i++) {
+        workers[i].postMessage({
+            messageType: "updateViscosity",
+            viscosity
+        });
+    }
+    // console.log(`Viscosity updated to: ${viscosity}`);
+});
+
 
 setup()

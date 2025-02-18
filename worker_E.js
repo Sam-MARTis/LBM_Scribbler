@@ -101,7 +101,7 @@ let speed2 = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTE
     }
     
     // def collide():
-    const collide = () => {
+    const collide = (om:Number) => {
     
         // for x in range(1, width-1):
         //     for y in range(1, height-1):
@@ -152,14 +152,14 @@ let speed2 = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTE
     
     
     
-                    nE[i] += omega * (one9th_rho * (1 + vx3 + 4.5 * vx2 - v215) - nE[i])
-                    nW[i] += omega * (one9th_rho * (1 - vx3 + 4.5 * vx2 - v215) - nW[i])
-                    nN[i] += omega * (one9th_rho * (1 + vy3 + 4.5 * vy2 - v215) - nN[i])
-                    nS[i] += omega * (one9th_rho * (1 - vy3 + 4.5 * vy2 - v215) - nS[i])
-                    nNE[i] += omega * (one36th_rho * (1 + vx3 + vy3 + 4.5 * (v2 + vxvy2) - v215) - nNE[i])
-                    nNW[i] += omega * (one36th_rho * (1 - vx3 + vy3 + 4.5 * (v2 - vxvy2) - v215) - nNW[i])
-                    nSE[i] += omega * (one36th_rho * (1 + vx3 - vy3 + 4.5 * (v2 - vxvy2) - v215) - nSE[i])
-                    nSW[i] += omega * (one36th_rho * (1 - vx3 - vy3 + 4.5 * (v2 + vxvy2) - v215) - nSW[i])
+                    nE[i] += om * (one9th_rho * (1 + vx3 + 4.5 * vx2 - v215) - nE[i])
+                    nW[i] += om * (one9th_rho * (1 - vx3 + 4.5 * vx2 - v215) - nW[i])
+                    nN[i] += om * (one9th_rho * (1 + vy3 + 4.5 * vy2 - v215) - nN[i])
+                    nS[i] += om * (one9th_rho * (1 - vy3 + 4.5 * vy2 - v215) - nS[i])
+                    nNE[i] += om * (one36th_rho * (1 + vx3 + vy3 + 4.5 * (v2 + vxvy2) - v215) - nNE[i])
+                    nNW[i] += om * (one36th_rho * (1 - vx3 + vy3 + 4.5 * (v2 - vxvy2) - v215) - nNW[i])
+                    nSE[i] += om * (one36th_rho * (1 + vx3 - vy3 + 4.5 * (v2 - vxvy2) - v215) - nSE[i])
+                    nSW[i] += om * (one36th_rho * (1 - vx3 - vy3 + 4.5 * (v2 + vxvy2) - v215) - nSW[i])
     
     
                     n0[i] = rho[i] - (nE[i] + nW[i] + nN[i] + nS[i] + nNE[i] + nSE[i] + nNW[i] + nSW[i]);
