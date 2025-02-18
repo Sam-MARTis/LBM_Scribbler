@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 const canvas = document.getElementById("projectCanvas");
 canvas.width = window.innerWidth * devicePixelRatio;
 canvas.height = window.innerHeight * devicePixelRatio;
@@ -32,7 +23,7 @@ let nNW = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_P
 let nNE = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
 let nSE = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
 let nSW = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
-let bar = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT)).fill(0);
+let bar = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
 let rho = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
 let ux = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
 let uy = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
@@ -97,18 +88,9 @@ const stream = () => {
         nS[(height - y - 1) * width + x] = nS[(height - y - 1 - 1) * width + x];
     }
 };
-// processWithWorkers();
-// const stream = async (): Promise<void> => {
-//   // work1.postMessage({array: nN, arrayType: "nN", width: width, height: height}, [nN.buffer]);
-//   // work1.onmessage = (e) => {
-//   //   nN = new Float32Array(e.data.array);
-//   //   console.log("nN has been updated by worker 1");
-//   //   console.log(nN);
-//   // }
-//   processWithWorkers();
-//   console.log("All arrays have been updated by the workers");
-// };
 const bounce = () => {
+    // for x in range(2, width-2):
+    //     for y in range(2, height-2):
     for (let x = 2; x < width - 2; x++) {
         for (let y = 2; y < height - 2; y++) {
             // if (bar[y*width + x]):
@@ -135,33 +117,35 @@ const bounce = () => {
         }
     }
 };
+// def collide():
 const collide = () => {
+    // for x in range(1, width-1):
+    //     for y in range(1, height-1):
     for (let x = 1; x < width - 1; x++) {
         for (let y = 1; y < height - 1; y++) {
             let i = y * width + x;
+            // if (bar[i]):
+            //     continue
             if (bar[i]) {
                 continue;
             }
             else {
-                rho[i] =
-                    n0[i] +
-                        nN[i] +
-                        nE[i] +
-                        nS[i] +
-                        nW[i] +
-                        nNE[i] +
-                        nSE[i] +
-                        nSW[i] +
-                        nNW[i];
+                rho[i] = n0[i] + nN[i] + nE[i] + nS[i] + nW[i] + nNE[i] + nSE[i] + nSW[i] + nNW[i];
                 // if (rho[i] > 0):
                 if (rho[i] > 0) {
-                    ux[i] =
-                        (nE[i] + nNE[i] + nSE[i] - nW[i] - nNW[i] - nSW[i]) *
-                            (1 - (rho[i] - 1) + (rho[i] - 1) ** 2);
-                    uy[i] =
-                        (nN[i] + nNE[i] + nNW[i] - nS[i] - nSE[i] - nSW[i]) *
-                            (1 - (rho[i] - 1) + (rho[i] - 1) ** 2);
+                    ux[i] = (nE[i] + nNE[i] + nSE[i] - nW[i] - nNW[i] - nSW[i]) * (1 - (rho[i] - 1) + ((rho[i] - 1) ** 2.));
+                    uy[i] = (nN[i] + nNE[i] + nNW[i] - nS[i] - nSE[i] - nSW[i]) * (1 - (rho[i] - 1) + ((rho[i] - 1) ** 2.));
                 }
+                // one9th_rho = one9th * rho[i]
+                // one36th_rho = one36th * rho[i]
+                // vx3 = 3 * ux[i]
+                // vy3 = 3 * uy[i]
+                // vx2 = ux[i] * ux[i]
+                // vy2 = uy[i] * uy[i]
+                // vxvy2 = 2 * ux[i] * uy[i]
+                // v2 = vx2 + vy2
+                // speed2[i] = v2
+                // v215 = 1.5 * v2
                 const one9th_rho = one9th * rho[i];
                 const one36th_rho = one36th * rho[i];
                 const vx3 = 3 * ux[i];
@@ -176,25 +160,39 @@ const collide = () => {
                 nW[i] += omega * (one9th_rho * (1 - vx3 + 4.5 * vx2 - v215) - nW[i]);
                 nN[i] += omega * (one9th_rho * (1 + vy3 + 4.5 * vy2 - v215) - nN[i]);
                 nS[i] += omega * (one9th_rho * (1 - vy3 + 4.5 * vy2 - v215) - nS[i]);
-                nNE[i] +=
-                    omega *
-                        (one36th_rho * (1 + vx3 + vy3 + 4.5 * (v2 + vxvy2) - v215) - nNE[i]);
-                nNW[i] +=
-                    omega *
-                        (one36th_rho * (1 - vx3 + vy3 + 4.5 * (v2 - vxvy2) - v215) - nNW[i]);
-                nSE[i] +=
-                    omega *
-                        (one36th_rho * (1 + vx3 - vy3 + 4.5 * (v2 - vxvy2) - v215) - nSE[i]);
-                nSW[i] +=
-                    omega *
-                        (one36th_rho * (1 - vx3 - vy3 + 4.5 * (v2 + vxvy2) - v215) - nSW[i]);
-                n0[i] =
-                    rho[i] -
-                        (nE[i] + nW[i] + nN[i] + nS[i] + nNE[i] + nSE[i] + nNW[i] + nSW[i]);
+                nNE[i] += omega * (one36th_rho * (1 + vx3 + vy3 + 4.5 * (v2 + vxvy2) - v215) - nNE[i]);
+                nNW[i] += omega * (one36th_rho * (1 - vx3 + vy3 + 4.5 * (v2 - vxvy2) - v215) - nNW[i]);
+                nSE[i] += omega * (one36th_rho * (1 + vx3 - vy3 + 4.5 * (v2 - vxvy2) - v215) - nSE[i]);
+                nSW[i] += omega * (one36th_rho * (1 - vx3 - vy3 + 4.5 * (v2 + vxvy2) - v215) - nSW[i]);
+                n0[i] = rho[i] - (nE[i] + nW[i] + nN[i] + nS[i] + nNE[i] + nSE[i] + nNW[i] + nSW[i]);
             }
         }
     }
 };
+// def initialize(xtop, ytop, yheight, u0=u0):
+//     xcoord = 0
+//     ycoord = 0
+//     count = 0
+//     for i in range(height*width):
+//         n0[i] = four9ths* (1 - 1.5*(u0**2.))
+//         nN[i] = one9th  * (1 - 1.5*(u0**2.))
+//         nS[i] = one9th  * (1 - 1.5*(u0**2.))
+//         nE[i] = one9th  * (1 + 3*u0 + 4.5*(u0**2.) - 1.5*(u0**2.))
+//         nW[i] = one9th  * (1 - 3*u0 + 4.5*(u0**2.) - 1.5*(u0**2.))
+//         nNE[i]= one36th * (1 + 3*u0 + 4.5*(u0**2.) - 1.5*(u0**2.))
+//         nSE[i]= one36th * (1 + 3*u0 + 4.5*(u0**2.) - 1.5*(u0**2.))
+//         nNW[i]= one36th * (1 - 3*u0 + 4.5*(u0**2.) - 1.5*(u0**2.))
+//         nSW[i]= one36th * (1 - 3*u0 + 4.5*(u0**2.) - 1.5*(u0**2.))
+//         rho[i] =  n0[i] + nN[i] + nS[i] + nE[i] + nW[i] + nNE[i] + nSE[i] + nNW[i] + nSW[i]
+//         ux[i]  = (nE[i] + nNE[i] + nSE[i] - nW[i] - nNW[i] - nSW[i]) * (1-(rho[i]-1)+((rho[i]-1)**2.))
+//         uy[i]  = (nN[i] + nNE[i] + nNW[i] - nS[i] - nSE[i] - nSW[i]) * (1-(rho[i]-1)+((rho[i]-1)**2.))
+//         if (xcoord==xtop):
+//             if (ycoord >= ytop):
+//                 if (ycoord < (ytop+yheight)):
+//                     count += 1
+//                     bar[ycoord*width + xcoord] = 1
+//         xcoord = (xcoord+1) if xcoord<(width-1) else 0
+//         ycoord = ycoord if (xcoord != 0) else (ycoord + 1)
 const initialize = (u0 = 0.1) => {
     let xcoord = 0;
     let ycoord = 0;
@@ -258,47 +256,32 @@ const draw = () => {
                         ctx.fillStyle = `rgb(${Math.max(0, c)}, ${0}, ${Math.max(0, -c)})`;
                         break;
                 }
+                // const c = 3000 * (uy[x + 1 + y * width] - uy[x - 1 + y * width] - ux[x + (y + 1) * width] + ux[x + (y - 1) * width]);
+                // ctx.fillStyle = `rgb(${Math.max(0, c)}, ${0}, ${Math.max(0, -c)})`;
                 ctx.fillRect(offsetX + x * DRAW_SCALE_X, offsetY + y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
             }
         }
     }
 };
-let isDrawing = false; // Tracks whether the user is currently drawing
-const getMousePosition = (e) => {
-    const rect = canvas.getBoundingClientRect();
-    const posX = Math.floor((e.clientX - rect.left - offsetX) / DRAW_SCALE_X);
-    const posY = Math.floor((e.clientY - rect.top - offsetY) / DRAW_SCALE_X);
-    return { posX, posY };
-};
-// Mouse down event to start drawing
-canvas.addEventListener("mousedown", (e) => {
-    isDrawing = true;
-    const { posX, posY } = getMousePosition(e);
-    // Ensure the clicked position is within valid bounds
-    if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
-        createWall(posX, posY);
-    }
-});
-// Mouse move event to draw while dragging
-canvas.addEventListener("mousemove", (e) => {
-    if (!isDrawing)
-        return; // Only draw when the mouse is down
-    const { posX, posY } = getMousePosition(e);
-    // Ensure the current position is within valid bounds
-    if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
-        createWall(posX, posY);
-    }
-});
-// Mouse up event to stop drawing
-canvas.addEventListener("mouseup", () => {
-    isDrawing = false;
-});
-// Optional: Handle mouse leaving the canvas to stop drawing
-canvas.addEventListener("mouseleave", () => {
-    isDrawing = false;
-});
+// let isDrawing = false; 
+// const getMousePosition = (e:MouseEvent) => {
+//     const rect = canvas.getBoundingClientRect();
+//     const posX = Math.floor((e.clientX - rect.left - offsetX) / DRAW_SCALE_X);
+//     const posY = height + Math.floor((e.clientY - rect.top) / DRAW_SCALE_X);
+//     console.log(e.clientX, e.clientY, rect.left, rect.top, offsetX, offsetY, posX, posY)
+//     // Ensure the clicked position is within valid bounds
+//     if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
+//         createWall(posX, posY);
+//     }
+// });
+// canvas.addEventListener("mouseup", () => {
+//     isDrawing = false;
+// });
+// canvas.addEventListener("mouseleave", () => {
+//     isDrawing = false;
+// });
 let time = performance.now();
-let iterationCounter = 0; // Counter to track iterations
+let iterationCounter = 0;
 const tick = () => {
     if (paused) {
         return;
@@ -391,6 +374,14 @@ canvas.addEventListener("mousemove", (e) => {
     const { posX, posY } = getMousePosition(e);
     if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
         createWall(posX, posY);
+        createWall(posX + 1, posY);
+        createWall(posX - 1, posY);
+        createWall(posX, posY + 1);
+        createWall(posX, posY - 1);
+        createWall(posX + 1, posY + 1);
+        createWall(posX - 1, posY - 1);
+        createWall(posX + 1, posY - 1);
+        createWall(posX - 1, posY + 1);
     }
 });
 canvas.addEventListener("mouseup", () => {

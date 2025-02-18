@@ -333,29 +333,29 @@ const draw = () => {
         }
     }
 };
-let isDrawing = false; 
+// let isDrawing = false; 
 
-const getMousePosition = (e:MouseEvent) => {
-    const rect = canvas.getBoundingClientRect();
-    const posX = Math.floor((e.clientX - rect.left - offsetX) / DRAW_SCALE_X);
-    const posY = height + Math.floor((e.clientY - rect.top) / DRAW_SCALE_X);
-    console.log(e.clientX, e.clientY, rect.left, rect.top, offsetX, offsetY, posX, posY)
+// const getMousePosition = (e:MouseEvent) => {
+//     const rect = canvas.getBoundingClientRect();
+//     const posX = Math.floor((e.clientX - rect.left - offsetX) / DRAW_SCALE_X);
+//     const posY = height + Math.floor((e.clientY - rect.top) / DRAW_SCALE_X);
+//     console.log(e.clientX, e.clientY, rect.left, rect.top, offsetX, offsetY, posX, posY)
 
-    // Ensure the clicked position is within valid bounds
-    if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
-        createWall(posX, posY);
-    }
-});
-
-
-canvas.addEventListener("mouseup", () => {
-    isDrawing = false;
-});
+//     // Ensure the clicked position is within valid bounds
+//     if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
+//         createWall(posX, posY);
+//     }
+// });
 
 
-canvas.addEventListener("mouseleave", () => {
-    isDrawing = false;
-});
+// canvas.addEventListener("mouseup", () => {
+//     isDrawing = false;
+// });
+
+
+// canvas.addEventListener("mouseleave", () => {
+//     isDrawing = false;
+// });
 
 
 
