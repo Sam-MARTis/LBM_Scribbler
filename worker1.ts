@@ -347,9 +347,9 @@ const drawPacman = () => {
       drawramp(8,20,50)
     }
     if (k==8) {
-      drawramp(5,20,50)
-      drawramp(3,25,50)
-      drawramp(1,28,50)
+      drawramp(10,25,50)
+      drawramp(5,35,50)
+      drawramp(3,40,50)
     }
     if (k==9) {
       drawinvertedramp(8,30,50)
@@ -357,9 +357,8 @@ const drawPacman = () => {
     if (k==1) {
       drawPacman()
     }
-
   }
-  drawId(e.data.id);;
+  drawId(e.data.id);
   let j = 1;
   const tick = () => {
     stream();
