@@ -60,16 +60,16 @@ onmessage = function (e) {
         } = e.data);
     }
     else {
-        if (e.data.messageType == "updateViscosity") {
-            console.log("Old value of viscosity: ", viscosity);
-            console.log("Viscosity Updated");
-            console.log("New value of viscosity: ", e.data.viscosity);
-            viscosity = e.data.viscosity;
-            omega = 1 / (3 * viscosity + 0.5);
-            cancelAnimationFrame(animationFrameId);
-            cancelAnimationFrame(animationFrameId);
-            //   this.requestAnimationFrame(tick.bind(null, omega));
-        }
+        // if(e.data.messageType == "updateViscosity"){
+        //     console.log("Old value of viscosity: ", viscosity)
+        //     console.log("Viscosity Updated")
+        //     console.log("New value of viscosity: ", e.data.viscosity)
+        //   viscosity = e.data.viscosity;
+        //   omega = 1 / (3 * viscosity + 0.5);
+        //   cancelAnimationFrame(animationFrameId);
+        //   cancelAnimationFrame(animationFrameId);
+        //   this.requestAnimationFrame(tick.bind(null, omega));
+        // }
     }
     // Now the variables can be accessed outside the if block as well
     if (e.data.messageType == 'initialize') {
