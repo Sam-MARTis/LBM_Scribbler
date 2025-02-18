@@ -319,7 +319,7 @@ const drawPacman = () => {
 }
 
 
-  drawBlock(5, 15, 25, 25);
+  // drawBlock(5, 15, 25, 25);
   const drawId = (k:number)=>{
     k=e.data.id
     
