@@ -22,22 +22,22 @@ onmessage = function (e) {
   const flatten2D = (i: number, j: number): number => {
     return j * width + i;
   };
-  let tick = (x:number) => {};
   let animationFrameId: number = 0;
   const four9ths = 4 / 9;
   const one9th = 1 / 9;
   const one36th = 1 / 36;
   let messageType:string;
+  console.log("Starting worker")
   
   // Declare variables in the outer scope (before the if block)
-  let id:number, viscosity:number, height:number, width:number, CALC_DRAW_RATIO:number, u0:number, n0:Float32Array, nN:Float32Array, nS:Float32Array, nE:Float32Array, nW:Float32Array, nNW:Float32Array, nNE:Float32Array, nSE:Float32Array, nSW:Float32Array, bar:Float32Array, rho:Float32Array, ux:Float32Array, uy:Float32Array, speed2:Float32Array;
-  viscosity = 0.1;
-  u0 = 0.1;
-  let omega = 1 / (3 * viscosity + 0.5);
-  if (e.data.messageType == 'initialize') {
-    // Assign values to the variables inside the if block
+  let id:number, posId: number, viscosity:number, height:number, width:number, CALC_DRAW_RATIO:number, u0:number, n0:Float32Array, nN:Float32Array, nS:Float32Array, nE:Float32Array, nW:Float32Array, nNW:Float32Array, nNE:Float32Array, nSE:Float32Array, nSW:Float32Array, bar:Float32Array, rho:Float32Array, ux:Float32Array, uy:Float32Array, speed2:Float32Array;
+//   viscosity = 0.01;
+//   u0 = 0.1;
+//   let omega = 1 / (3 * viscosity + 0.5);
+
     ({
     messageType, 
+    posId,
       id,
       viscosity,
       height,
@@ -59,7 +59,8 @@ onmessage = function (e) {
       uy,
       speed2,
     } = e.data);
-  }else{
+    const omega = 1 / (3 * viscosity + 0.5);
+
     // if(e.data.messageType == "updateViscosity"){
     //     console.log("Old value of viscosity: ", viscosity)
     //     console.log("Viscosity Updated")
@@ -72,11 +73,10 @@ onmessage = function (e) {
 
     // }
 
-  }
+  
   
   // Now the variables can be accessed outside the if block as well
-  
-if (e.data.messageType == 'initialize') {
+
 
   const stream = () => {
     // for x in range(0, width-1):
@@ -287,8 +287,6 @@ if (e.data.messageType == 'initialize') {
   };
   drawBlock(5, 15, 25, 25);
   let j = 1;
-  let animationFrameId: number;
-
   let isAnimating = false;
 
   const tick = (om: number) => {
@@ -302,9 +300,9 @@ if (e.data.messageType == 'initialize') {
     collide(om);
   
     if (j % CALC_DRAW_RATIO == 0) {
-      postMessage({ id, rho, ux, uy, speed2 });
+      postMessage({ posId, rho, ux, uy, speed2 });
     }
-    console.log(j, om);
+    // console.log(j, om);
   
     j++;
     isAnimating = false;
@@ -313,5 +311,5 @@ if (e.data.messageType == 'initialize') {
   tick(omega);
   
   
-}
+
 };

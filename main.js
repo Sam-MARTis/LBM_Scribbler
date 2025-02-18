@@ -9,14 +9,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 const canvas = document.getElementById("projectCanvas");
-const NoOfWorkers = 1;
+const NoOfWorkers = 10;
 canvas.width = window.innerWidth * devicePixelRatio;
-canvas.height = window.innerHeight * devicePixelRatio * NoOfWorkers;
+canvas.height = window.innerHeight * devicePixelRatio;
 const ctx = canvas.getContext("2d");
 const height = 100;
 const width = 200;
 const multiplier = 1.5;
-let viscosity = 0.005 * multiplier;
+let viscosity = 0.01 * multiplier;
 let omega = 1 / (3 * viscosity + 0.5);
 const u0 = 0.2 / multiplier;
 const four9ths = 4. / 9.;
@@ -47,20 +47,21 @@ plotSelect.addEventListener("change", () => {
     plotOption = plotSelect.value;
 });
 let paused = false;
-let animVal = null;
-const but1 = document.getElementById("but1");
-// but1.addEventListener("click", () => {
-//     paused = !paused;  // Toggle the paused state
-//     if (!paused) {
-//         // Resume the animation
-//         tick();
-//     } else {
-//         // Pause the animation by canceling the next frame
-//         if (animVal !== null) {
-//             cancelAnimationFrame(animVal);
-//         }
-//     }
-// });
+let animVal = 0;
+const playPauseButton = document.getElementById("but1");
+playPauseButton.addEventListener("click", () => {
+    paused = !paused; // Toggle the paused state
+    if (!paused) {
+        // Resume the animation
+        tick();
+    }
+    else {
+        // Pause the animation by canceling the next frame
+        if (animVal !== null) {
+            cancelAnimationFrame(animVal);
+        }
+    }
+});
 const flatten2D = (i, j) => {
     return j * width + i;
 };
@@ -282,21 +283,21 @@ const draw = (id, rho, ux, uy, speed2) => {
 };
 let time = performance.now();
 let iterationCounter = 0;
-// const tick = () => {
-//     if (paused) {
-//         return;
-//     }
-//     for (let iter = 0; iter < CALC_DRAW_RATIO; iter++) {
-//         stream()
-//         bounce()
-//         collide()
-//     }
-//     // ensureStability()   
-//     draw()
-//     animVal = requestAnimationFrame(tick)
-//     const newTime = performance.now()
-//     time = newTime
-// }
+const tick = () => {
+    if (paused) {
+        return;
+    }
+    for (let iter = 0; iter < CALC_DRAW_RATIO; iter++) {
+        stream();
+        bounce();
+        collide();
+    }
+    // ensureStability()   
+    draw(0, rho, ux, uy, speed2);
+    animVal = requestAnimationFrame(tick);
+    const newTime = performance.now();
+    time = newTime;
+};
 initialize(u0);
 const drawBlock = (Block_Height, Block_width, pos_X_block, pos_Y_block) => {
     for (let i = pos_X_block; i < pos_X_block + Block_width; i++) {
@@ -345,7 +346,7 @@ const drawinvertedramp = (ramp_H, pos_X_ramp, pos_Y_ramp) => {
         }
     }
 };
-// drawCircleBarrier(10,35)
+drawCircleBarrier(10, 35);
 // drawinvertedramp(8,25,50)
 let isDrawing = false;
 const getMousePosition = (e) => {
@@ -354,39 +355,46 @@ const getMousePosition = (e) => {
     const posY = Math.floor((e.clientY - rect.top - offsetY) * height / (rect.height - 2 * offsetY));
     return { posX, posY };
 };
-// canvas.addEventListener("mousedown", (e) => {
-//     isDrawing = true;
-//     const { posX, posY } = getMousePosition(e);
-//     if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
-//         createWall(posX, posY);
-//     }
-// });
-// canvas.addEventListener("mousemove", (e) => {
-//     if (!isDrawing) return;  //
-//     const { posX, posY } = getMousePosition(e);
-//     if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
-//         createWall(posX, posY);
-//         createWall(posX+1, posY);
-//         createWall(posX-1, posY);
-//         createWall(posX, posY+1);
-//         createWall(posX, posY-1);
-//         createWall(posX+1, posY+1);
-//         createWall(posX-1, posY-1);
-//         createWall(posX+1, posY-1);
-//         createWall(posX-1, posY+1);
-//     }
-// });
-// canvas.addEventListener("mouseup", () => {
-//     isDrawing = false;
-// });
-// canvas.addEventListener("mouseleave", () => {
-//     isDrawing = false;
-// });
+canvas.addEventListener("mousedown", (e) => {
+    isDrawing = true;
+    const { posX, posY } = getMousePosition(e);
+    if (multiSimCHeckbox.checked) {
+        return;
+    }
+    if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
+        createWall(posX, posY);
+    }
+});
+canvas.addEventListener("mousemove", (e) => {
+    if (!isDrawing)
+        return; //
+    if (multiSimCHeckbox.checked) {
+        return;
+    }
+    const { posX, posY } = getMousePosition(e);
+    if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
+        createWall(posX, posY);
+        createWall(posX + 1, posY);
+        createWall(posX - 1, posY);
+        createWall(posX, posY + 1);
+        createWall(posX, posY - 1);
+        createWall(posX + 1, posY + 1);
+        createWall(posX - 1, posY - 1);
+        createWall(posX + 1, posY - 1);
+        createWall(posX - 1, posY + 1);
+    }
+});
+canvas.addEventListener("mouseup", () => {
+    isDrawing = false;
+});
+canvas.addEventListener("mouseleave", () => {
+    isDrawing = false;
+});
 console.log();
 // drawCircleBarrier(7,90)"Initialization took", performance.now()-time, "ms")
 time = performance.now();
 // tick()
-const workers = [];
+let workers = [];
 // Start the loop from i = 0 so workers are correctly pushed into the array.
 for (let i = 0; i < NoOfWorkers; i++) {
     workers.push(new Worker("worker1.js"));
@@ -422,18 +430,121 @@ for (let i = 0; i < NoOfWorkers; i++) {
         draw(e.data.id, e.data.rho, e.data.ux, e.data.uy, e.data.speed2);
     };
 }
+let IDsToUse = [];
 const viscositySlider = document.getElementById("viscositySlider");
-// Add an event listener to detect changes in the slider
+const multiSimCHeckbox = document.getElementById("multiSimCheckbox");
+const multiSimControls = document.getElementById('multiSimControls');
+const checkboxesContainer = document.getElementById('checkboxes');
+const submitBtn = document.getElementById('submitBtn');
+multiSimCHeckbox.addEventListener("change", function () {
+    // If the checkbox is checked, disable the viscosity slider
+    if (this.checked) {
+        cancelAnimationFrame(animVal);
+        bar = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        viscositySlider.disabled = true;
+        playPauseButton.disabled = true;
+        multiSimControls.style.display = 'flex';
+        // Create checkboxes dynamically
+        checkboxesContainer.innerHTML = ''; // Clear previous checkboxes if any
+        for (let i = 1; i <= 10; i++) {
+            const checkboxWrapper = document.createElement('div');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `${i}`;
+            const label = document.createElement('label');
+            label.setAttribute('for', checkbox.id);
+            label.textContent = `name${i}`;
+            checkboxWrapper.appendChild(checkbox);
+            checkboxWrapper.appendChild(label);
+            checkboxesContainer.appendChild(checkboxWrapper);
+        }
+        for (let i = 0; i < workers.length; i++) {
+            workers[i].terminate();
+        }
+        for (let i = 0; i < IDsToUse.length; i++) {
+            workers.push(new Worker("worker1.js"));
+            workers[i].postMessage({
+                messageType: "initialize",
+                posId: i,
+                id: IDsToUse[i],
+                viscosity,
+                height,
+                width,
+                CALC_DRAW_RATIO,
+                u0, n0, nN, nS, nE, nW,
+                nNE, nNW, nSE, nSW,
+                bar, rho, ux, uy, speed2
+            });
+        }
+    }
+    else {
+        canvas.height = window.innerHeight * devicePixelRatio;
+        viscositySlider.disabled = false;
+        playPauseButton.disabled = false;
+        multiSimControls.style.display = 'none';
+        drawCircleBarrier(10, 35);
+        tick();
+    }
+});
+const createWebWorkerSims = (IDsToUse) => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let i = 0; i < workers.length; i++) {
+        workers[i].terminate();
+    }
+    workers = [];
+    for (let i = 0; i < IDsToUse.length; i++) {
+        workers.push(new Worker("worker1.js"));
+    }
+    for (let i = 0; i < IDsToUse.length; i++) {
+        workers[i].postMessage({
+            messageType: "initialize",
+            posId: i,
+            id: IDsToUse[i],
+            viscosity,
+            height,
+            width,
+            CALC_DRAW_RATIO,
+            u0, n0, nN, nS, nE, nW,
+            nNE, nNW, nSE, nSW,
+            bar, rho, ux, uy, speed2
+        });
+    }
+    for (let i = 0; i < workers.length; i++) {
+        workers[i].onmessage = (e) => {
+            draw(e.data.posId, e.data.rho, e.data.ux, e.data.uy, e.data.speed2);
+        };
+    }
+};
+// Handle form submission
+submitBtn.addEventListener('click', () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    cancelAnimationFrame(animVal);
+    console.log('Submit button clicked');
+    IDsToUse = [];
+    const checkboxes = checkboxesContainer.querySelectorAll('input[type="checkbox"]:checked');
+    checkboxes.forEach(checkbox => {
+        IDsToUse.push(parseInt(checkbox.id)); // Push the checked checkbox's id
+    });
+    console.log('Selected IDs:', IDsToUse);
+    canvas.height = window.innerHeight * devicePixelRatio * IDsToUse.length;
+    createWebWorkerSims(IDsToUse);
+});
 viscositySlider.addEventListener("input", () => {
     // Update the viscosity variable to the slider's current value
     viscosity = parseFloat(viscositySlider.value) * multiplier;
-    // omega = 1 / (3 * viscosity + 0.5);
-    for (let i = 0; i < NoOfWorkers; i++) {
-        workers[i].postMessage({
-            messageType: "updateViscosity",
-            viscosity
-        });
-    }
+    omega = 1 / (3 * viscosity + 0.5);
+    // for (let i = 0; i < NoOfWorkers; i++) {
+    //     workers[i].postMessage({
+    //         messageType: "updateViscosity",
+    //         viscosity
+    //     });
+    // }
     // console.log(`Viscosity updated to: ${viscosity}`);
 });
-setup();
+tick();
+// setup()
+// workers = []
+// for (let i = 0; i < NoOfWorkers; i++) {
+//     workers[i].terminate();
+// }

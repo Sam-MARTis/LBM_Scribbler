@@ -68,6 +68,16 @@
             margin-top: 10px;
             text-align: center;
         }
+        button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+        .multiSimControls {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -86,7 +96,7 @@
                 </select>
             </label>
             <label for="viscositySlider">Viscosity: 
-                <input type="range" id="viscositySlider" min="0.003" max="0.1" step="0.001" value="0.04">
+                <input type="range" id="viscositySlider" min="0.003" max="0.1" step="0.001" value="0.015">
             </label>
             <!-- Checkbox for multi-simulation -->
             <label for="multiSimCheckbox">
@@ -96,6 +106,15 @@
             <!-- Button next to the slider -->
             <button id="but1">Start/Pause</button>
         </div>
+
+        <!-- Multi-sim checkboxes and submit button -->
+        <div class="multiSimControls" id="multiSimControls">
+            <div id="checkboxes">
+                <!-- Checkboxes will be inserted here -->
+            </div>
+            <button id="submitBtn">Submit</button>
+        </div>
+
         <!-- Warning about CPU intensity -->
         <div class="warning">
             Warning: Simulating multiple systems can be CPU intensive.
@@ -103,6 +122,8 @@
     </div>
     <canvas id="projectCanvas"></canvas>
 
-    <script src="main.js"></script>
+    <script src="main.js">
+        
+    </script>
 </body>
 </html>
