@@ -1,3 +1,4 @@
+"use strict";
 onmessage = function (e) {
     /*
       let n0 = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT))
@@ -18,45 +19,44 @@ onmessage = function (e) {
       let speed2 = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT))
       
       */
-    var _this = this;
-    var flatten2D = function (i, j) {
+    const flatten2D = (i, j) => {
         return j * width + i;
     };
-    var four9ths = 4 / 9;
-    var one9th = 1 / 9;
-    var one36th = 1 / 36;
-    var _a = e.data, id = _a.id, viscosity = _a.viscosity, height = _a.height, width = _a.width, CALC_DRAW_RATIO = _a.CALC_DRAW_RATIO, u0 = _a.u0, n0 = _a.n0, nN = _a.nN, nS = _a.nS, nE = _a.nE, nW = _a.nW, nNW = _a.nNW, nNE = _a.nNE, nSE = _a.nSE, nSW = _a.nSW, bar = _a.bar, rho = _a.rho, ux = _a.ux, uy = _a.uy, speed2 = _a.speed2;
-    var omega = 1 / (3 * viscosity + 0.5);
-    var stream = function () {
+    const four9ths = 4 / 9;
+    const one9th = 1 / 9;
+    const one36th = 1 / 36;
+    const { id, viscosity, height, width, CALC_DRAW_RATIO, u0, n0, nN, nS, nE, nW, nNW, nNE, nSE, nSW, bar, rho, ux, uy, speed2, } = e.data;
+    const omega = 1 / (3 * viscosity + 0.5);
+    const stream = () => {
         // for x in range(0, width-1):
-        for (var x_1 = 0; x_1 < width - 1; x_1++) {
+        for (let x = 0; x < width - 1; x++) {
             // for y in range(1, height-1):
-            for (var y = 1; y < height - 1; y++) {
-                nN[y * width + x_1] = nN[y * width + x_1 + width];
-                nNW[y * width + x_1] = nNW[y * width + x_1 + width + 1];
-                nW[y * width + x_1] = nW[y * width + x_1 + 1];
-                nS[(height - y - 1) * width + x_1] = nS[(height - y - 1 - 1) * width + x_1];
-                nSW[(height - y - 1) * width + x_1] =
-                    nSW[(height - y - 1 - 1) * width + x_1 + 1];
-                nE[y * width + (width - x_1 - 1)] = nE[y * width + (width - (x_1 + 1) - 1)];
-                nNE[y * width + (width - x_1 - 1)] =
-                    nNE[y * width + width + (width - (x_1 + 1) - 1)];
-                nSE[(height - y - 1) * width + (width - x_1 - 1)] =
-                    nSE[(height - y - 1 - 1) * width + (width - (x_1 + 1) - 1)];
+            for (let y = 1; y < height - 1; y++) {
+                nN[y * width + x] = nN[y * width + x + width];
+                nNW[y * width + x] = nNW[y * width + x + width + 1];
+                nW[y * width + x] = nW[y * width + x + 1];
+                nS[(height - y - 1) * width + x] = nS[(height - y - 1 - 1) * width + x];
+                nSW[(height - y - 1) * width + x] =
+                    nSW[(height - y - 1 - 1) * width + x + 1];
+                nE[y * width + (width - x - 1)] = nE[y * width + (width - (x + 1) - 1)];
+                nNE[y * width + (width - x - 1)] =
+                    nNE[y * width + width + (width - (x + 1) - 1)];
+                nSE[(height - y - 1) * width + (width - x - 1)] =
+                    nSE[(height - y - 1 - 1) * width + (width - (x + 1) - 1)];
             }
         }
-        var x = width;
+        const x = width;
         // for y in range(1, height-1):
-        for (var y = 1; y < height - 1; y++) {
+        for (let y = 1; y < height - 1; y++) {
             nN[y * width + x] = nN[y * width + x + width];
             nS[(height - y - 1) * width + x] = nS[(height - y - 1 - 1) * width + x];
         }
     };
-    var bounce = function () {
+    const bounce = () => {
         // for x in range(2, width-2):
         //     for y in range(2, height-2):
-        for (var x = 2; x < width - 2; x++) {
-            for (var y = 2; y < height - 2; y++) {
+        for (let x = 2; x < width - 2; x++) {
+            for (let y = 2; y < height - 2; y++) {
                 // if (bar[y*width + x]):
                 if (bar[y * width + x]) {
                     //Barrier bounces the velocity back
@@ -82,12 +82,12 @@ onmessage = function (e) {
         }
     };
     // def collide():
-    var collide = function () {
+    const collide = () => {
         // for x in range(1, width-1):
         //     for y in range(1, height-1):
-        for (var x = 1; x < width - 1; x++) {
-            for (var y = 1; y < height - 1; y++) {
-                var i = y * width + x;
+        for (let x = 1; x < width - 1; x++) {
+            for (let y = 1; y < height - 1; y++) {
+                let i = y * width + x;
                 // if (bar[i]):
                 //     continue
                 if (bar[i]) {
@@ -108,10 +108,10 @@ onmessage = function (e) {
                     if (rho[i] > 0) {
                         ux[i] =
                             (nE[i] + nNE[i] + nSE[i] - nW[i] - nNW[i] - nSW[i]) *
-                                (1 - (rho[i] - 1) + Math.pow((rho[i] - 1), 2));
+                                (1 - (rho[i] - 1) + (rho[i] - 1) ** 2);
                         uy[i] =
                             (nN[i] + nNE[i] + nNW[i] - nS[i] - nSE[i] - nSW[i]) *
-                                (1 - (rho[i] - 1) + Math.pow((rho[i] - 1), 2));
+                                (1 - (rho[i] - 1) + (rho[i] - 1) ** 2);
                     }
                     // one9th_rho = one9th * rho[i]
                     // one36th_rho = one36th * rho[i]
@@ -123,16 +123,16 @@ onmessage = function (e) {
                     // v2 = vx2 + vy2
                     // speed2[i] = v2
                     // v215 = 1.5 * v2
-                    var one9th_rho = one9th * rho[i];
-                    var one36th_rho = one36th * rho[i];
-                    var vx3 = 3 * ux[i];
-                    var vy3 = 3 * uy[i];
-                    var vx2 = ux[i] * ux[i];
-                    var vy2 = uy[i] * uy[i];
-                    var vxvy2 = 2 * ux[i] * uy[i];
-                    var v2 = vx2 + vy2;
+                    const one9th_rho = one9th * rho[i];
+                    const one36th_rho = one36th * rho[i];
+                    const vx3 = 3 * ux[i];
+                    const vy3 = 3 * uy[i];
+                    const vx2 = ux[i] * ux[i];
+                    const vy2 = uy[i] * uy[i];
+                    const vxvy2 = 2 * ux[i] * uy[i];
+                    const v2 = vx2 + vy2;
                     speed2[i] = v2;
-                    var v215 = 1.5 * v2;
+                    const v215 = 1.5 * v2;
                     nE[i] += omega * (one9th_rho * (1 + vx3 + 4.5 * vx2 - v215) - nE[i]);
                     nW[i] += omega * (one9th_rho * (1 - vx3 + 4.5 * vx2 - v215) - nW[i]);
                     nN[i] += omega * (one9th_rho * (1 + vy3 + 4.5 * vy2 - v215) - nN[i]);
@@ -160,20 +160,19 @@ onmessage = function (e) {
             }
         }
     };
-    var initialize = function (u0) {
-        if (u0 === void 0) { u0 = 0.1; }
-        var xcoord = 0;
-        var ycoord = 0;
-        for (var i = 0; i < height * width; i++) {
-            n0[i] = four9ths * (1 - 1.5 * Math.pow(u0, 2));
-            nN[i] = one9th * (1 - 1.5 * Math.pow(u0, 2));
-            nS[i] = one9th * (1 - 1.5 * Math.pow(u0, 2));
-            nE[i] = one9th * (1 + 3 * u0 + 4.5 * Math.pow(u0, 2) - 1.5 * Math.pow(u0, 2));
-            nW[i] = one9th * (1 - 3 * u0 + 4.5 * Math.pow(u0, 2) - 1.5 * Math.pow(u0, 2));
-            nNE[i] = one36th * (1 + 3 * u0 + 4.5 * Math.pow(u0, 2) - 1.5 * Math.pow(u0, 2));
-            nSE[i] = one36th * (1 + 3 * u0 + 4.5 * Math.pow(u0, 2) - 1.5 * Math.pow(u0, 2));
-            nNW[i] = one36th * (1 - 3 * u0 + 4.5 * Math.pow(u0, 2) - 1.5 * Math.pow(u0, 2));
-            nSW[i] = one36th * (1 - 3 * u0 + 4.5 * Math.pow(u0, 2) - 1.5 * Math.pow(u0, 2));
+    const initialize = (u0 = 0.1) => {
+        let xcoord = 0;
+        let ycoord = 0;
+        for (let i = 0; i < height * width; i++) {
+            n0[i] = four9ths * (1 - 1.5 * u0 ** 2);
+            nN[i] = one9th * (1 - 1.5 * u0 ** 2);
+            nS[i] = one9th * (1 - 1.5 * u0 ** 2);
+            nE[i] = one9th * (1 + 3 * u0 + 4.5 * u0 ** 2 - 1.5 * u0 ** 2);
+            nW[i] = one9th * (1 - 3 * u0 + 4.5 * u0 ** 2 - 1.5 * u0 ** 2);
+            nNE[i] = one36th * (1 + 3 * u0 + 4.5 * u0 ** 2 - 1.5 * u0 ** 2);
+            nSE[i] = one36th * (1 + 3 * u0 + 4.5 * u0 ** 2 - 1.5 * u0 ** 2);
+            nNW[i] = one36th * (1 - 3 * u0 + 4.5 * u0 ** 2 - 1.5 * u0 ** 2);
+            nSW[i] = one36th * (1 - 3 * u0 + 4.5 * u0 ** 2 - 1.5 * u0 ** 2);
             rho[i] =
                 n0[i] +
                     nN[i] +
@@ -186,40 +185,40 @@ onmessage = function (e) {
                     nSW[i];
             ux[i] =
                 (nE[i] + nNE[i] + nSE[i] - nW[i] - nNW[i] - nSW[i]) *
-                    (1 - (rho[i] - 1) + Math.pow((rho[i] - 1), 2));
+                    (1 - (rho[i] - 1) + (rho[i] - 1) ** 2);
             uy[i] =
                 (nN[i] + nNE[i] + nNW[i] - nS[i] - nSE[i] - nSW[i]) *
-                    (1 - (rho[i] - 1) + Math.pow((rho[i] - 1), 2));
+                    (1 - (rho[i] - 1) + (rho[i] - 1) ** 2);
             xcoord = xcoord + 1 < width - 1 ? xcoord + 1 : 0;
             ycoord = xcoord != 0 ? ycoord : ycoord + 1;
         }
     };
-    var createWall = function (x, y) {
+    const createWall = (x, y) => {
         bar[flatten2D(x, y)] = 1;
     };
-    var removeWall = function (x, y) {
+    const removeWall = (x, y) => {
         bar[flatten2D(x, y)] = 0;
     };
     initialize(u0);
-    var drawBlock = function (Block_Height, Block_width, pos_X_block, pos_Y_block) {
-        for (var i = pos_X_block; i < pos_X_block + Block_width; i++) {
-            for (var j_1 = Math.floor(Math.abs(pos_Y_block - Block_Height / 2)) - 1; j_1 < pos_Y_block + Block_Height / 2; j_1++) {
-                createWall(i, j_1);
+    const drawBlock = (Block_Height, Block_width, pos_X_block, pos_Y_block) => {
+        for (let i = pos_X_block; i < pos_X_block + Block_width; i++) {
+            for (let j = Math.floor(Math.abs(pos_Y_block - Block_Height / 2)) - 1; j < pos_Y_block + Block_Height / 2; j++) {
+                createWall(i, j);
             }
         }
     };
-    drawBlock(5, 15, 25, 25);
-    var j = 1;
-    var tick = function () {
+    //   drawBlock(5, 15, 25, 25);
+    let j = 1;
+    const tick = () => {
         stream();
         bounce();
         collide();
-        if (j % CALC_DRAW_RATIO * 10 == 0) {
-            postMessage({ id: id, rho: rho, ux: ux, uy: uy, speed2: speed2 });
+        if (j % CALC_DRAW_RATIO == 0) {
+            postMessage({ id, rho, ux, uy, speed2 });
         }
         j++;
-        console.log("Completed a loop: ", j);
-        _this.requestAnimationFrame(tick);
+        // console.log("Completed a loop: ", j)
+        this.requestAnimationFrame(tick);
     };
     tick();
 };

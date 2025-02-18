@@ -234,16 +234,19 @@ const removeWall = (x, y) => {
 };
 const handleBoundaries = () => {
 };
+const NoOfWorkers = 2;
 const offsetX = (canvas.width - width * DRAW_SCALE_X) / 2;
-const offsetY = (canvas.height - height * DRAW_SCALE_X) / 2;
-const draw = (rho, ux, uy, speed2) => {
+// const offsetY = (canvas.height - height * DRAW_SCALE_X) / 2;
+const offsetY = 0;
+const draw = (id, rho, ux, uy, speed2) => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const actualOffset = offsetY + id * height * DRAW_SCALE_X;
     for (let x = 2; x < width - 2; x++) {
         for (let y = 2; y < height - 10; y++) {
             const i = y * width + x;
             if (bar[i]) {
                 ctx.fillStyle = "black";
-                ctx.fillRect(offsetX + x * DRAW_SCALE_X, offsetY + y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
+                ctx.fillRect(offsetX + x * DRAW_SCALE_X, actualOffset + y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
             }
             else {
                 let c = 0;
@@ -271,7 +274,7 @@ const draw = (rho, ux, uy, speed2) => {
                 }
                 // const c = 3000 * (uy[x + 1 + y * width] - uy[x - 1 + y * width] - ux[x + (y + 1) * width] + ux[x + (y - 1) * width]);
                 // ctx.fillStyle = `rgb(${Math.max(0, c)}, ${0}, ${Math.max(0, -c)})`;
-                ctx.fillRect(offsetX + x * DRAW_SCALE_X, offsetY + y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
+                ctx.fillRect(offsetX + x * DRAW_SCALE_X, actualOffset + y * DRAW_SCALE_X, DRAW_SCALE_X, DRAW_SCALE_X);
             }
         }
     }
@@ -383,11 +386,13 @@ console.log();
 time = performance.now();
 // tick()
 const worker1 = new Worker("worker1.js");
+const worker2 = new Worker("worker1.js");
 const setup = () => {
-    worker1.postMessage({ id: 1, viscosity, height, width, CALC_DRAW_RATIO, u0, n0, nN, nS, nE, nW, nNE, nNW, nSE, nSW, bar, rho, ux, uy, speed2 });
+    worker1.postMessage({ id: 0, viscosity, height, width, CALC_DRAW_RATIO, u0, n0, nN, nS, nE, nW, nNE, nNW, nSE, nSW, bar, rho, ux, uy, speed2 });
+    worker2.postMessage({ id: 1, viscosity, height, width, CALC_DRAW_RATIO, u0, n0, nN, nS, nE, nW, nNE, nNW, nSE, nSW, bar, rho, ux, uy, speed2 });
 };
 worker1.onmessage = (e) => {
     // const { id, rho, ux, uy, bar } = e.data;
-    draw(e.data.rho, e.data.ux, e.data.uy, e.data.speed2);
+    draw(e.data.id, e.data.rho, e.data.ux, e.data.uy, e.data.speed2);
 };
 setup();

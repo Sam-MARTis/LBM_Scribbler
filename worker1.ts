@@ -257,17 +257,17 @@ onmessage = function (e) {
       }
     }
   };
-  drawBlock(5, 15, 25, 25);
+//   drawBlock(5, 15, 25, 25);
   let j = 1;
   const tick = () => {
     stream();
     bounce();
     collide();
-    if (j % CALC_DRAW_RATIO*10 == 0) {
+    if (j % CALC_DRAW_RATIO == 0) {
       postMessage({ id, rho, ux, uy, speed2 });
     }
     j++
-    console.log("Completed a loop: ", j)
+    // console.log("Completed a loop: ", j)
     this.requestAnimationFrame(tick);
 
   }
