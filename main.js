@@ -95,6 +95,7 @@ const bounce = () => {
         for (let y = 2; y < height - 2; y++) {
             // if (bar[y*width + x]):
             if (bar[y * width + x]) {
+                //Barrier bounces the velocity back
                 nN[(y - 1) * width + x] = nS[y * width + x];
                 nS[(y + 1) * width + x] = nN[y * width + x];
                 nE[y * width + x + 1] = nW[y * width + x];
@@ -306,7 +307,7 @@ const drawBlock = (Block_Height, Block_width, pos_X_block, pos_Y_block) => {
         }
     }
 };
-drawBlock(5, 15, 25, 25);
+// drawBlock(5,15,25,25)
 //creat Circle
 const drawCircleBarrier = (radius, pos_X) => {
     const pos_Y = Math.floor(height / 2);
@@ -318,7 +319,7 @@ const drawCircleBarrier = (radius, pos_X) => {
         }
     }
 };
-// drawCircleBarrier(5, 50)
+drawCircleBarrier(5, 60);
 // drawCircleBarrier(7,90)
 // creat ramp but ..
 const drawramp = (ramp_H, pos_X_ramp, pos_Y_ramp) => {

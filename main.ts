@@ -127,6 +127,7 @@ const bounce = () => {
 
             // if (bar[y*width + x]):
             if (bar[y * width + x]) {
+                //Barrier bounces the velocity back
 
 
                 nN[(y - 1) * width + x] = nS[y * width + x]
@@ -390,7 +391,7 @@ const drawBlock =(Block_Height:number,Block_width:number, pos_X_block:number, po
         }
     }
 }
-drawBlock(5,15,25,25)
+// drawBlock(5,15,25,25)
 
 //creat Circle
 const drawCircleBarrier = (radius: number, pos_X: number): void => {
@@ -403,7 +404,7 @@ const drawCircleBarrier = (radius: number, pos_X: number): void => {
         }
     }
 }
-// drawCircleBarrier(5, 50)
+drawCircleBarrier(5, 60)
 // drawCircleBarrier(7,90)
 
 // creat ramp but ..
