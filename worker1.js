@@ -283,12 +283,12 @@ onmessage = function (e) {
             drawCircleBarrier(3, 25, 50);
         }
         if (k == 5) {
-            drawCircleBarrier(7, 25, 50);
+            drawCircleBarrier(8, 25, 50);
         }
         if (k == 6) {
-            drawCircleBarrier(5, 25, 50);
+            drawCircleBarrier(8, 25, 50);
             drawCircleBarrier(5, 32, 50);
-            drawCircleBarrier(5, 39, 50);
+            drawCircleBarrier(3, 39, 50);
         }
         if (k == 7) {
             drawramp(8, 20, 50);

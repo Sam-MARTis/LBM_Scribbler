@@ -460,7 +460,31 @@ multiSimCHeckbox.addEventListener("change", function () {
                 label.textContent = `Pacman`;
             }
             if (i === 2) {
-                label.textContent = `Circle`;
+                label.textContent = `Horizontal Rectangle`;
+            }
+            if (i === 3) {
+                label.textContent = `Vertical Rectangle`;
+            }
+            if (i === 4) {
+                label.textContent = `Small Circle`;
+            }
+            if (i === 5) {
+                label.textContent = `Big Circle`;
+            }
+            if (i === 6) {
+                label.textContent = `Multi Bump`;
+            }
+            if (i === 7) {
+                label.textContent = `Ramp`;
+            }
+            if (i === 8) {
+                label.textContent = `Multi Ramp`;
+            }
+            if (i === 9) {
+                label.textContent = `Inverted Ramp`;
+            }
+            if (i === 10) {
+                label.textContent = `Vertical Line`;
             }
             checkboxWrapper.appendChild(checkbox);
             checkboxWrapper.appendChild(label);
