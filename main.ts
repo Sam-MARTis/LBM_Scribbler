@@ -7,7 +7,7 @@ const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 const height = 100
 const width = 200
 const multiplier = 1.5
-let viscosity = 0.01 * multiplier
+let viscosity = 0.008 * multiplier
 let omega = 1 / (3 * viscosity + 0.5)
 const u0 = 0.2 / multiplier
 const four9ths = 4. / 9.
@@ -58,6 +58,7 @@ playPauseButton.addEventListener("click", () => {
         // Pause the animation by canceling the next frame
         if (animVal !== null) {
             cancelAnimationFrame(animVal);
+            
         }
     }
 
@@ -542,7 +543,7 @@ const disclaimer = document.getElementById('disclaimer') as HTMLElement;
 
 // Function to show the disclaimer
 function showDisclaimer() {
-    disclaimer.innerText = 'Click "r" to submit'; // Show disclaimer
+    disclaimer.innerText = 'Click "r" or click here to submit'; // Show disclaimer
 }
 
 // Function to hide the disclaimer
@@ -671,25 +672,9 @@ const createWebWorkerSims = (IDsToUse: number[]) => {
     }
 }
 
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'r') {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        canvas.height = window.innerHeight * devicePixelRatio*1.1;
-        cancelAnimationFrame(animVal);
-        console.log('Submit button clicked');
-        IDsToUse = [];
-        const checkboxes = checkboxesContainer.querySelectorAll('input[type="checkbox"]:checked');
-        checkboxes.forEach(checkbox => {
-            IDsToUse.push(parseInt(checkbox.id)); // Push the checked checkbox's id
-        });
-        console.log('Selected IDs:', IDsToUse);
-        canvas.height = window.innerHeight * devicePixelRatio*IDsToUse.length*1.1;
-        createWebWorkerSims(IDsToUse);
-    }
-});
-        // Handle form submission
-submitBtn.addEventListener('click', () => {
+const performMultiSim = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.height = window.innerHeight * devicePixelRatio*1.1;
     cancelAnimationFrame(animVal);
     console.log('Submit button clicked');
     IDsToUse = [];
@@ -699,8 +684,33 @@ submitBtn.addEventListener('click', () => {
     });
     console.log('Selected IDs:', IDsToUse);
     canvas.height = window.innerHeight * devicePixelRatio*IDsToUse.length*1.1;
-            createWebWorkerSims(IDsToUse);
+    createWebWorkerSims(IDsToUse);
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'r') {
+        if (multiSimCHeckbox.checked) {
+
+        performMultiSim();
+        }
+    }
 });
+        // Handle form submission
+submitBtn.addEventListener('click', () => {
+    performMultiSim();
+});
+// document.addEventListener('dblclick', (e) => {
+//     if(multiSimCHeckbox.checked){
+//         performMultiSim();
+//     }
+// })
+
+disclaimer.addEventListener('click', (e) => {
+    if(multiSimCHeckbox.checked){
+        performMultiSim();
+    }
+}
+)
 
 
 viscositySlider.addEventListener("input", () => {
