@@ -427,7 +427,7 @@ const drawinvertedramp = (ramp_H:number, pos_X_ramp:number, pos_Y_ramp:number): 
 }
 
 drawCircleBarrier(10,35)
-// drawinvertedramp(8,25,50)
+
 
 let isDrawing = false; 
 
