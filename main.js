@@ -13,7 +13,7 @@ const four9ths = 4. / 9.;
 const one9th = 1. / 9.;
 const one36th = 1. / 36.;
 const CALC_DRAW_RATIO = 15;
-const DRAW_SCALE_X = 0.9 * canvas.width / width;
+const DRAW_SCALE_X = 1 * canvas.width / width;
 let n0 = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
 let nN = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
 let nS = new Float32Array(new ArrayBuffer(height * width * Float32Array.BYTES_PER_ELEMENT));
@@ -349,6 +349,34 @@ const drawinvertedramp = (ramp_H, pos_X_ramp, pos_Y_ramp) => {
 };
 // drawCircleBarrier(10,35)
 // drawinvertedramp(8,25,50)
+let isDrawing = false;
+const getMousePosition = (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const posX = Math.floor((e.clientX - rect.left - offsetX) * width / (rect.width - 2 * offsetX));
+    const posY = Math.floor((e.clientY - rect.top - offsetY) * height / (rect.height - 2 * offsetY));
+    return { posX, posY };
+};
+canvas.addEventListener("mousedown", (e) => {
+    isDrawing = true;
+    const { posX, posY } = getMousePosition(e);
+    if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
+        createWall(posX, posY);
+    }
+});
+canvas.addEventListener("mousemove", (e) => {
+    if (!isDrawing)
+        return; //
+    const { posX, posY } = getMousePosition(e);
+    if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
+        createWall(posX, posY);
+    }
+});
+canvas.addEventListener("mouseup", () => {
+    isDrawing = false;
+});
+canvas.addEventListener("mouseleave", () => {
+    isDrawing = false;
+});
 console.log();
 // drawCircleBarrier(7,90)"Initialization took", performance.now()-time, "ms")
 time = performance.now();

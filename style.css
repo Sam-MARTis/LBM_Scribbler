@@ -4,7 +4,7 @@
     padding: 0px;
 }
 canvas{
-    position: absolute;
+    position: relative;
     background-color: black;
     height: 100%;
     width: 100%;
