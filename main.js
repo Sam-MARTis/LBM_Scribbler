@@ -71,83 +71,8 @@ viscositySlider.addEventListener("input", () => {
 const flatten2D = (i, j) => {
     return j * width + i;
 };
-const work1 = new Worker("worker1.js");
-const work2 = new Worker("worker1.js");
-const work3 = new Worker("worker1.js");
-const work4 = new Worker("worker1.js");
-const work5 = new Worker("worker1.js");
-const work6 = new Worker("worker1.js");
-const work7 = new Worker("worker1.js");
-const work8 = new Worker("worker1.js");
-// Function to post a message to a worker and handle responses/errors
-const postMessageToWorker = (worker, message) => {
-    return new Promise((resolve, reject) => {
-        worker.onmessage = (e) => resolve(e.data); // Ensure e.data is cast as StreamResponse
-        worker.onerror = (err) => reject(err);
-        worker.postMessage(message, [message.arrayBuffer.buffer]); // Transfer the ArrayBuffer
-    });
-};
-// Asynchronous function to process data with workers
-const processWithWorkers = () => {
-    return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
-        console.log("Processing with workers...");
-        try {
-            // Create an array of promises for each worker
-            const promises = [
-                postMessageToWorker(work1, { arrayBuffer: nN, arrayType: "nN", width, height }),
-                postMessageToWorker(work2, { arrayBuffer: nNW, arrayType: "nNW", width, height }),
-                postMessageToWorker(work3, { arrayBuffer: nW, arrayType: "nW", width, height }),
-                postMessageToWorker(work4, { arrayBuffer: nS, arrayType: "nS", width, height }),
-                postMessageToWorker(work5, { arrayBuffer: nSW, arrayType: "nSW", width, height }),
-                postMessageToWorker(work6, { arrayBuffer: nE, arrayType: "nE", width, height }),
-                postMessageToWorker(work7, { arrayBuffer: nNE, arrayType: "nNE", width, height }),
-                postMessageToWorker(work8, { arrayBuffer: nSE, arrayType: "nSE", width, height }),
-            ];
-            // Wait for all workers to finish processing
-            const results = yield Promise.all(promises);
-            console.log("All workers finished processing.");
-            console.log(results); // Handle the results from all workers
-            // Process each worker's response
-            for (let i = 0; i < results.length; i++) {
-                const { array, arrayType } = results[i];
-                switch (arrayType) {
-                    case "nN":
-                        nN = new Float32Array(array);
-                        break;
-                    case "nNW":
-                        nNW = new Float32Array(array);
-                        break;
-                    case "nW":
-                        nW = new Float32Array(array);
-                        break;
-                    case "nS":
-                        nS = new Float32Array(array);
-                        break;
-                    case "nSW":
-                        nSW = new Float32Array(array);
-                        break;
-                    case "nE":
-                        nE = new Float32Array(array);
-                        break;
-                    case "nNE":
-                        nNE = new Float32Array(array);
-                        break;
-                    case "nSE":
-                        nSE = new Float32Array(array);
-                        break;
-                    default:
-                        console.error("Unknown array type");
-                        break;
-                }
-            }
-            // Resolve the promise once processing is complete
-            resolve();
-        }
-        catch (error) {
-            console.error("Error occurred during worker processing:", error);
-            reject(error); // Reject the promise if an error occurs
-        }
-    }));
+const D_Square = (x1, y1, x2, y2) => {
+    return ((x1 - x2) * (x1 - x2)) + ((y1 - y2) * (y1 - y2));
 };
 const stream = () => {
     // for x in range(0, width-1):
@@ -188,6 +113,7 @@ const bounce = () => {
         for (let y = 2; y < height - 2; y++) {
             // if (bar[y*width + x]):
             if (bar[y * width + x]) {
+                //Barrier bounces the velocity back
                 nN[(y - 1) * width + x] = nS[y * width + x];
                 nS[(y + 1) * width + x] = nN[y * width + x];
                 nE[y * width + x + 1] = nW[y * width + x];
@@ -292,6 +218,9 @@ const initialize = (u0 = 0.1) => {
 const createWall = (x, y) => {
     bar[flatten2D(x, y)] = 1;
 };
+const removeWall = (x, y) => {
+    bar[flatten2D(x, y)] = 0;
+};
 const handleBoundaries = () => {
 };
 const offsetX = (canvas.width - width * DRAW_SCALE_X) / 2;
@@ -318,7 +247,7 @@ const draw = () => {
                         break;
                     case "vy":
                         c = 10 * Math.floor(255 * uy[i]);
-                        ctx.fillStyle = `rgb(${c}, ${c}, ${0})`;
+                        ctx.fillStyle = `rgb(${125 + c}, ${125 + c}, ${0})`;
                         break;
                     case "speed":
                         c = 5 * Math.floor(255 * Math.sqrt(speed2[i]));
@@ -388,10 +317,89 @@ const tick = () => {
 };
 initialize(u0);
 // const wallSize = Math.floor(height/5)
-const wallSize = 10;
-for (let j = Math.floor((height / 2) - wallSize / 2) - 1; j < (height / 2) + wallSize / 2; j++) {
-    createWall(20, j);
-}
-console.log("Initialization took", performance.now() - time, "ms");
+// const wallSize = 10
+// for(let j = Math.floor((height/2)-wallSize/2)-1; j<(height/2)+wallSize/2; j++){
+//     createWall(20, j)
+// }
+// creat block
+const drawBlock = (Block_Height, Block_width, pos_X_block, pos_Y_block) => {
+    for (let i = pos_X_block; i < pos_X_block + Block_width; i++) {
+        for (let j = Math.floor(Math.abs((pos_Y_block) - Block_Height / 2)) - 1; j < (pos_Y_block) + Block_Height / 2; j++) {
+            createWall(i, j);
+        }
+    }
+};
+// drawBlock(5,15,25,25)
+//creat Circle
+const drawCircleBarrier = (radius, pos_X) => {
+    const pos_Y = Math.floor(height / 2);
+    for (let i = 0; i < width; i++) {
+        for (let j = 0; j < height; j++) {
+            if ((D_Square(i, j, pos_X, pos_Y)) <= radius ** 2 - 0.001) {
+                createWall(i, j);
+            }
+        }
+    }
+};
+drawCircleBarrier(5, 60);
+// drawCircleBarrier(7,90)
+// creat ramp but ..
+const drawramp = (ramp_H, pos_X_ramp, pos_Y_ramp) => {
+    for (let i = pos_X_ramp; i < ramp_H + pos_X_ramp; i++) {
+        for (let j = pos_Y_ramp; j < i + pos_Y_ramp - pos_X_ramp; j++) {
+            createWall(i, j);
+        }
+    }
+    for (let i = pos_X_ramp; i < pos_X_ramp + ramp_H; i++) {
+        for (let j = pos_Y_ramp; j > pos_Y_ramp - i + pos_X_ramp; j--) {
+            createWall(i, j);
+        }
+    }
+};
+// creat invertedramp but ..
+const drawinvertedramp = (ramp_H, pos_X_ramp, pos_Y_ramp) => {
+    for (let i = ramp_H + pos_X_ramp; i >= pos_X_ramp; i--) {
+        for (let j = ramp_H - i + pos_Y_ramp + pos_X_ramp; j > pos_Y_ramp; j--) {
+            removeWall(i, j);
+        }
+    }
+    for (let i = pos_X_ramp; i < pos_X_ramp + ramp_H; i++) {
+        for (let j = pos_Y_ramp - ramp_H + (i - pos_X_ramp); j <= pos_Y_ramp; j++) {
+            removeWall(i, j);
+        }
+    }
+};
+// drawCircleBarrier(10,35)
+// drawinvertedramp(8,25,50)
+let isDrawing = false;
+const getMousePosition = (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const posX = Math.floor((e.clientX - rect.left - offsetX) * width / (rect.width - 2 * offsetX));
+    const posY = Math.floor((e.clientY - rect.top - offsetY) * height / (rect.height - 2 * offsetY));
+    return { posX, posY };
+};
+canvas.addEventListener("mousedown", (e) => {
+    isDrawing = true;
+    const { posX, posY } = getMousePosition(e);
+    if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
+        createWall(posX, posY);
+    }
+});
+canvas.addEventListener("mousemove", (e) => {
+    if (!isDrawing)
+        return; //
+    const { posX, posY } = getMousePosition(e);
+    if (posX >= 2 && posX < width - 2 && posY >= 2 && posY < height - 10) {
+        createWall(posX, posY);
+    }
+});
+canvas.addEventListener("mouseup", () => {
+    isDrawing = false;
+});
+canvas.addEventListener("mouseleave", () => {
+    isDrawing = false;
+});
+console.log();
+// drawCircleBarrier(7,90)"Initialization took", performance.now()-time, "ms")
 time = performance.now();
 tick();
