@@ -4,9 +4,9 @@ Try the demo here: [https://sam-martis.github.io/LBM_Scribbler/](https://sam-mar
 
 Our project is an interactive fluid simulation that allows users to visualize and control fluid dynamics in real time through a web-based interface. The simulation is built using HTML, CSS, and JavaScript, with Web Workers for efficient computations and interactive controls for adjusting fluid properties.
 
-![X Velocity Demonstration](x_velocity_demonstration.png)
-![Density Demonstration](density_demonstration.png)
-![Curl Demonstration](curl_demonstration.png)
+![X Velocity Demonstration](XVelDemo.png)
+![Density Demonstration](densityDemo.png)
+![Curl Demonstration](curlDemo.png)
 
 ## Key Features
 

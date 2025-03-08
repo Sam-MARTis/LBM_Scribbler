@@ -32,9 +32,9 @@ onmessage = function (e) {
     const { id, posId, viscosity, height, width, CALC_DRAW_RATIO, u0, n0, nN, nS, nE, nW, nNW, nNE, nSE, nSW, bar, rho, ux, uy, speed2, functionArguments } = e.data;
     const omega = 1 / (3 * viscosity + 0.5);
     const stream = () => {
-       
+        // for x in range(0, width-1):
         for (let x = 0; x < width - 1; x++) {
-            
+            // for y in range(1, height-1):
             for (let y = 1; y < height - 1; y++) {
                 nN[y * width + x] = nN[y * width + x + width];
                 nNW[y * width + x] = nNW[y * width + x + width + 1];
@@ -50,19 +50,20 @@ onmessage = function (e) {
             }
         }
         const x = width;
-
+        // for y in range(1, height-1):
         for (let y = 1; y < height - 1; y++) {
             nN[y * width + x] = nN[y * width + x + width];
             nS[(height - y - 1) * width + x] = nS[(height - y - 1 - 1) * width + x];
         }
     };
     const bounce = () => {
-        
+        // for x in range(2, width-2):
+        //     for y in range(2, height-2):
         for (let x = 2; x < width - 2; x++) {
             for (let y = 2; y < height - 2; y++) {
-                
+                // if (bar[y*width + x]):
                 if (bar[y * width + x]) {
-                    
+                    //Barrier bounces the velocity back
                     nN[(y - 1) * width + x] = nS[y * width + x];
                     nS[(y + 1) * width + x] = nN[y * width + x];
                     nE[y * width + x + 1] = nW[y * width + x];
@@ -84,13 +85,15 @@ onmessage = function (e) {
             }
         }
     };
-    
+    // def collide():
     const collide = (om) => {
-        
+        // for x in range(1, width-1):
+        //     for y in range(1, height-1):
         for (let x = 1; x < width - 1; x++) {
             for (let y = 1; y < height - 1; y++) {
                 let i = y * width + x;
-                
+                // if (bar[i]):
+                //     continue
                 if (bar[i]) {
                     continue;
                 }
@@ -105,7 +108,7 @@ onmessage = function (e) {
                             nSE[i] +
                             nSW[i] +
                             nNW[i];
-                    
+                    // if (rho[i] > 0):
                     if (rho[i] > 0) {
                         ux[i] =
                             (nE[i] + nNE[i] + nSE[i] - nW[i] - nNW[i] - nSW[i]) *
@@ -114,7 +117,16 @@ onmessage = function (e) {
                             (nN[i] + nNE[i] + nNW[i] - nS[i] - nSE[i] - nSW[i]) *
                                 (1 - (rho[i] - 1) + (rho[i] - 1) ** 2);
                     }
-                    
+                    // one9th_rho = one9th * rho[i]
+                    // one36th_rho = one36th * rho[i]
+                    // vx3 = 3 * ux[i]
+                    // vy3 = 3 * uy[i]
+                    // vx2 = ux[i] * ux[i]
+                    // vy2 = uy[i] * uy[i]
+                    // vxvy2 = 2 * ux[i] * uy[i]
+                    // v2 = vx2 + vy2
+                    // speed2[i] = v2
+                    // v215 = 1.5 * v2
                     const one9th_rho = one9th * rho[i];
                     const one36th_rho = one36th * rho[i];
                     const vx3 = 3 * ux[i];
@@ -208,7 +220,9 @@ onmessage = function (e) {
             }
         }
     };
-    
+    // drawCircleBarrier(5, 60)
+    // drawCircleBarrier(7,90)
+    // creat ramp but ..
     const drawramp = (ramp_H, pos_X_ramp, pos_Y_ramp) => {
         for (let i = pos_X_ramp; i < ramp_H + pos_X_ramp; i++) {
             for (let j = pos_Y_ramp; j < i + pos_Y_ramp - pos_X_ramp; j++) {
@@ -221,7 +235,7 @@ onmessage = function (e) {
             }
         }
     };
-    
+    // creat invertedramp 
     const drawinvertedramp = (ramp_H, pos_X_ramp, pos_Y_ramp) => {
         for (let i = ramp_H + pos_X_ramp; i >= pos_X_ramp; i--) {
             for (let j = ramp_H - i + pos_Y_ramp + pos_X_ramp; j > pos_Y_ramp; j--) {
